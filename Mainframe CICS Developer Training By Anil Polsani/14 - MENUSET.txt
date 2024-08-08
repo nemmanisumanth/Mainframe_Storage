@@ -1,0 +1,23 @@
+MENUSET DFHMSD TYPE=&SYSPARM,LANG=COBOL,MODE=INOUT,STORAGE=AUTO,       X
+               TIOAPFX=YES,CTRL=(FREEKB,FRSET,ALARM),                  X
+               MAPATTS=(COLOR,HILIGHT),                                X
+               DSATTS=(COLOR,HILIGHT)
+MENUMAP DFHMDI SIZE=(24,80),LINE=1,COLUMN=1,JUSTIFY=LEFT
+        DFHMDF POS=(04,04),INITIAL='CHOOSE UR OPTION..',               X
+               LENGTH=19,ATTRB=(ASKIP)
+CHOICE  DFHMDF POS=(04,24),INITIAL='_',LENGTH=1,ATTRB=(UNPROT,NUM,IC), X
+               PICIN='9(1)'
+        DFHMDF POS=(04,26),INITIAL='1.ADDITION',LENGTH=10,ATTRB=ASKIP, X
+               COLOR=RED
+        DFHMDF POS=(05,26),INITIAL='2.SUBRACTION',LENGTH=12,           X
+               COLOR=YELLOW,ATTRB=ASKIP
+        DFHMDF POS=(06,26),INITIAL='3.MULTIPY',LENGTH=12,ATTRB=ASKIP,  X
+               COLOR=GREEN
+        DFHMDF POS=(07,26),INITIAL='4.DIVISION',LENGTH=12,ATTRB=ASKIP, X
+               COLOR=BLUE
+DUMMY   DFHMDF POS=(24,79),                                            X
+               LENGTH=1,                                               X
+               ATTRB=(DRK,ASKIP,FSET)
+        DFHMSD TYPE=FINAL
+        END
+

@@ -1,0 +1,173 @@
+       ID DIVISION.
+       PROGRAM-ID. CURSORP2.
+       AUTHOR. NAME.
+       DATE-WRITTEN. TODAY.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT RESTART-FILE ASSIGN TO CURSORD1
+           ORGANIZATION IS SEQUENTIAL
+           ACCESS MODE IS SEQUENTIAL
+           FILE STATUS IS WS-OT-STATUS.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD RESTART-FILE
+           LABEL RECORDS ARE STANDARD.
+       01 LAST-COMMIT-KEY  PIC  X(05).
+
+       WORKING-STORAGE SECTION.
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+           EXEC SQL INCLUDE DCLCLAIM END-EXEC.
+
+           EXEC SQL
+              DECLARE C-NAME CURSOR WITH HOLD FOR
+              SELECT CLAIM_NUMBER,CUST_NAME,CLAIM_AMOUNT,CLAIM_TYPE,
+                     CLAIM_STATUS,CLAIM_SUB_DT
+              FROM CLAIM_T21
+              FOR UPDATE OF CLAIM_AMOUNT
+           END-EXEC.
+       01 WS-END-OF-ROWS PIC   X(01) VALUE SPACE.
+       01 WS-NULL-IND     PIC  S9(04) COMP VALUE +0.
+       01 WS-OT-STATUS   PIC  X(02) VALUE SPACE.
+       01 WS-ROW-COUNT    PIC  9(02) VALUE ZERO.
+       01 WS-UPDATE-COUNT PIC  9(02) VALUE ZERO.
+       01 WS-ABENDPGM     PIC  X(08) VALUE 'ABENDPGM'.
+       01 WS-RESTART      PIC  X(01) VALUE SPACE.
+       01 WS-END-OF-FILE  PIC  X(01) VALUE SPACE.
+       01 WS-ABEND        PIC  X(01) VALUE SPACE.
+       01 WS-CONTINUE-UPDATE PIC  X(01) VALUE SPACE.
+       01 CLAIM-NUMBER-HOLD PIC X(05) VALUE SPACE.
+       PROCEDURE DIVISION.
+       000-MAIN-PARA.
+           DISPLAY 'CURSORP2 STARTED'.
+           ACCEPT WS-RESTART.
+           ACCEPT WS-ABEND.
+           IF WS-RESTART = 'N'
+               MOVE 'Y' TO WS-CONTINUE-UPDATE
+           ELSE
+               MOVE 'N' TO WS-CONTINUE-UPDATE
+               PERFORM 400-RESTART-PROCESS-PARA THRU 400-EXIT
+           END-IF.
+           PERFORM 010-NORMAL-PROCESS-PARA THRU 010-EXIT
+           CLOSE RESTART-FILE.
+           DISPLAY 'TOTAL RECORD CNT ' WS-ROW-COUNT.
+           STOP RUN.
+
+       400-RESTART-PROCESS-PARA.
+           MOVE 'N' TO WS-END-OF-FILE
+           OPEN I-O RESTART-FILE.
+           PERFORM UNTIL WS-END-OF-FILE = 'Y'
+              READ RESTART-FILE
+              AT END
+                 MOVE 'Y' TO WS-END-OF-FILE
+              NOT AT END
+                 MOVE LAST-COMMIT-KEY TO CLAIM-NUMBER-HOLD
+              END-READ
+           END-PERFORM.
+           CLOSE RESTART-FILE.
+
+       400-EXIT. EXIT.
+
+
+       010-NORMAL-PROCESS-PARA.
+           PERFORM 100-N-INITIAL-PARA THRU 100-EXIT.
+           PERFORM 200-OPEN-CURSOR-PARA THRU 200-EXIT.
+           MOVE 'N' TO WS-END-OF-ROWS.
+           PERFORM 300-FETCH-PARA THRU 300-EXIT
+                         UNTIL WS-END-OF-ROWS  = 'Y'.
+           EXEC SQL CLOSE C-NAME END-EXEC.
+       010-EXIT. EXIT.
+
+       100-N-INITIAL-PARA.
+
+           OPEN OUTPUT RESTART-FILE
+           IF WS-OT-STATUS NOT = '00'
+              DISPLAY 'ERROR IN FILE OPEN ' WS-OT-STATUS
+              CALL WS-ABENDPGM
+           END-IF.
+           DISPLAY 'END OF FILE OPEN ' WS-OT-STATUS.
+       100-EXIT.
+
+       200-OPEN-CURSOR-PARA.
+           EXEC SQL OPEN C-NAME END-EXEC.
+           IF SQLCODE NOT = 0000
+              DISPLAY 'ERROR IN MAIN-PARA'
+              DISPLAY 'SQLCODE IS  ' SQLCODE
+              CALL WS-ABENDPGM
+           END-IF.
+           DISPLAY 'END OF OPEN CURSOR' SQLCODE.
+       200-EXIT. EXIT.
+
+       300-FETCH-PARA.
+           EXEC SQL
+             FETCH C-NAME INTO
+                        :DCL-CLAIM-NUMBER,
+                        :DCL-CUST-NAME,
+                        :DCL-CLAIM-AMOUNT,
+                        :DCL-CLAIM-TYPE:WS-NULL-IND,
+                        :DCL-CLAIM-STATUS,
+                        :DCL-CLAIM-SUB-DT
+           END-EXEC.
+           IF SQLCODE = 000
+             ADD +1 TO WS-ROW-COUNT
+             IF WS-RESTART = 'Y'
+                        AND DCL-CLAIM-NUMBER = CLAIM-NUMBER-HOLD
+               MOVE 'Y' TO WS-CONTINUE-UPDATE
+               MOVE 'N' TO WS-RESTART
+               GO TO 300-EXIT
+             END-IF
+             IF WS-CONTINUE-UPDATE = 'Y'
+              IF WS-NULL-IND < 0
+                 MOVE SPACE TO DCL-CLAIM-TYPE
+              END-IF
+              PERFORM 250-UPDATE-PARA THRU 250-EXIT
+             END-IF
+           ELSE
+           IF SQLCODE = 100
+              MOVE 'Y' TO WS-END-OF-ROWS
+           ELSE
+              DISPLAY 'ERROR IN FETCH-PARA'
+              DISPLAY 'SQLCODE IS '  SQLCODE
+              DISPLAY 'RECORD DETAILS ' DCL-CLAIM-DETAILS
+              DISPLAY 'ROW COUNT ' WS-ROW-COUNT
+              CALL WS-ABENDPGM
+           END-IF
+           END-IF.
+
+       300-EXIT. EXIT.
+
+       250-UPDATE-PARA.
+           COMPUTE DCL-CLAIM-AMOUNT = DCL-CLAIM-AMOUNT + 100.
+           EXEC SQL
+              UPDATE CLAIM_T21
+              SET CLAIM_AMOUNT = :DCL-CLAIM-AMOUNT
+              WHERE CURRENT OF C-NAME
+           END-EXEC.
+           IF SQLCODE = 00
+              ADD +1 TO WS-UPDATE-COUNT
+              IF WS-UPDATE-COUNT = 2
+                EXEC SQL COMMIT END-EXEC
+                PERFORM 350-SAVE-RECORD-PARA THRU 350-EXIT
+                MOVE 0 TO WS-UPDATE-COUNT
+              END-IF
+           ELSE
+              DISPLAY 'ERROR IN UPDATE ' SQLCODE
+           END-IF.
+           IF WS-ROW-COUNT = 5 AND WS-ABEND = 'Y'
+              DISPLAY 'ROW ' WS-ROW-COUNT
+              CALL WS-ABENDPGM
+           END-IF.
+       250-EXIT. EXIT.
+
+       350-SAVE-RECORD-PARA.
+           MOVE DCL-CLAIM-NUMBER TO LAST-COMMIT-KEY
+           WRITE LAST-COMMIT-KEY.
+           IF WS-OT-STATUS NOT = '00'
+              DISPLAY 'ERROR IN WRITE ' WS-OT-STATUS
+              CALL WS-ABENDPGM
+           END-IF.
+       350-EXIT. EXIT.
+
+

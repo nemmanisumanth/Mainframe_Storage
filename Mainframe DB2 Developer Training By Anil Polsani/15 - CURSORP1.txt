@@ -1,0 +1,69 @@
+       ID DIVISION.                                                     00010000
+       PROGRAM-ID. CURSORP1.                                            00020003
+       AUTHOR. NAME.                                                    00030000
+       DATE-WRITTEN. TODAY.                                             00040000
+                                                                        00050000
+       ENVIRONMENT DIVISION.                                            00060001
+       INPUT-OUTPUT SECTION.                                            00070000
+       FILE-CONTROL.                                                    00080000
+                                                                        00090000
+       DATA DIVISION.                                                   00100000
+       FILE SECTION.                                                    00110000
+       WORKING-STORAGE SECTION.                                         00120000
+           EXEC SQL INCLUDE SQLCA END-EXEC.                             00130000
+           EXEC SQL INCLUDE DCLCLAIM END-EXEC.                          00140000
+           EXEC SQL                                                     00141003
+             DECLARE C-NAME CURSOR FOR                                  00142003
+               SELECT CLAIM_NUMBER,                                     00143003
+                      CUST_NAME,                                        00144003
+                      CLAIM_AMOUNT,                                     00145003
+                      CLAIM_TYPE,                                       00146003
+                      CLAIM_STATUS,                                     00147003
+                      CLAIM_SUB_DT                                      00148003
+               FROM CLAIM_T61                                           00149003
+           END-EXEC.                                                    00149103
+       01 WS-NULL-IND     PIC  S9(04) COMP.                             00150005
+       01 WS-ROW-COUNT    PIC   9(02) VALUE ZERO.                       00160000
+       01 WS-ABENDPGM     PIC   X(08) VALUE 'ABENDPGM'.                 00170000
+       01 WS-END-OF-ROWS  PIC   X(01) VALUE SPACE.                      00180003
+       PROCEDURE DIVISION.                                              00190000
+       000-MAIN-PARA.                                                   00200000
+           DISPLAY 'CBLPGM04 STARTED'.                                  00210000
+           MOVE 'N' TO WS-END-OF-ROWS.                                  00211003
+           EXEC SQL  OPEN C-NAME END-EXEC.                              00212003
+           IF SQLCODE NOT = 000                                         00213003
+             DISPLAY 'ERROR IN OPEN CURSOR '                            00214003
+             DISPLAY 'SQLCODE  ' SQLCODE                                00215003
+             CALL WS-ABENDPGM                                           00216003
+           END-IF.                                                      00217003
+                                                                        00218003
+           PERFORM UNTIL WS-END-OF-ROWS = 'Y'                           00219003
+             EXEC SQL                                                   00230003
+              FETCH C-NAME INTO                                         00240003
+                 :DCL-CLAIM-NUMBER,                                     00250000
+                 :DCL-CUST-NAME,                                        00260000
+                 :DCL-CLAIM-AMOUNT,                                     00262000
+                 :DCL-CLAIM-TYPE,                                       00263000
+                 :DCL-CLAIM-STATUS:WS-NULL-IND,                         00264005
+                 :DCL-CLAIM-SUB-DT                                      00270003
+             END-EXEC                                                   00320004
+             EVALUATE TRUE                                              00330003
+             WHEN SQLCODE = 000                                         00340003
+               IF WS-NULL-IND  < 0                                      00341005
+                  MOVE SPACE TO DCL-CLAIM-STATUS                        00342005
+               END-IF                                                   00343005
+               DISPLAY 'CLAIM RECORD IS ' DCL-CLAIM-DETAILS             00350003
+               ADD +1 TO WS-ROW-COUNT                                   00351003
+      *        PERFORM 100-MOVE-WRITE-PARA THRU 100-EXIT                00351106
+             WHEN SQLCODE = 100                                         00352003
+               DISPLAY 'END OF THE RESULT'                              00353003
+               MOVE 'Y' TO WS-END-OF-ROWS                               00354003
+             WHEN OTHER                                                 00360003
+               DISPLAY 'ERROR IN SELECT QUERY '                         00370003
+               DISPLAY 'SQLCODE IS ' SQLCODE                            00380003
+               CALL WS-ABENDPGM                                         00390003
+             END-EVALUATE                                               00400003
+           END-PERFORM.                                                 00401003
+           EXEC SQL CLOSE C-NAME END-EXEC.                              00402003
+           STOP RUN.                                                    00410000
+

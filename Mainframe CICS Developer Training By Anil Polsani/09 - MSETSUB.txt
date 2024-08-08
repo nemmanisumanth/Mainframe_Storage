@@ -1,0 +1,32 @@
+        PRINT NOGEN
+MSETSUB DFHMSD TYPE=&SYSPARM,LANG=COBOL,MODE=INOUT,TIOAPFX=YES,        X
+               CTRL=(FREEKB,FRSET),STORAGE=AUTO,TERM=ALL
+MAPSUB1 DFHMDI SIZE=(24,80),LINE=1,COLUMN=1
+        DFHMDF POS=(3,25),INITIAL='SUB OF 2 NUMBER',LENGTH=15,         X
+               ATTRB=(ASKIP,BRT)
+*********************************************************************
+        DFHMDF POS=(10,30),INITIAL='NO1:',LENGTH=4,ATTRB=(PROT,NORM)
+NO1     DFHMDF POS=(10,35),INITIAL='____',LENGTH=4,                    X
+               ATTRB=(UNPROT,NORM,IC,NUM,FSET),                        X
+               PICIN='9(04)',PICOUT='9(04)'
+        DFHMDF POS=(10,40),INITIAL=' ',LENGTH=1,ATTRB=(ASKIP,NORM)
+*********************************************************************
+        DFHMDF POS=(11,30),INITIAL='NO2:',LENGTH=4,ATTRB=(PROT,NORM)
+NO2     DFHMDF POS=(11,35),INITIAL='____',LENGTH=4,                    X
+               ATTRB=(UNPROT,NORM,NUM),                                X
+               PICIN='9(04)',PICOUT='9(04)'
+        DFHMDF POS=(11,40),INITIAL=' ',LENGTH=1,ATTRB=(ASKIP,NORM)
+*********************************************************************
+        DFHMDF POS=(12,28),INITIAL='TOTAL:',LENGTH=6,ATTRB=(PROT,NORM)
+TOTAL   DFHMDF POS=(12,35),INITIAL='_____',LENGTH=5,                   X
+               ATTRB=(PROT,NORM,NUM),                                  X
+               PICIN='9(05)',PICOUT='9(05)'
+        DFHMDF POS=(12,41),INITIAL=' ',LENGTH=1,ATTRB=(ASKIP,NORM)
+*********************************************************************
+MSG     DFHMDF POS=(22,01),INITIAL=' ',LENGTH=75,ATTRB=(PROT,NORM)
+        DFHMDF POS=(23,01),INITIAL='F1- SUB F2-CLEAR F3-EXIT ',        X
+               LENGTH=25,ATTRB=(ASKIP,NORM)
+DUMMY   DFHMDF POS=(24,79),INITIAL=' ',ATTRB=(ASKIP,DRK,FSET),LENGTH=1
+        DFHMSD TYPE=FINAL
+        END
+

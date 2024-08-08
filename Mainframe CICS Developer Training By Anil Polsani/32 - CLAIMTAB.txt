@@ -1,0 +1,87 @@
+   SELECT * FROM CLAIM_TSQ;                                             00010099
+--INSERT INTO IBMUSER.CLAIM_TSQ(                                        00012199
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00012299
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00012399
+  VALUES('C2001','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00012499
+         '2021-03-16');                                                 00012599
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00012699
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00012799
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00012899
+  VALUES('C2002','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00012999
+         '2021-03-16');                                                 00013099
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00013199
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00013299
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00013399
+  VALUES('C2003','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00013499
+         '2021-03-16');                                                 00013599
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00013699
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00013799
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00013899
+  VALUES('C2004','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00013999
+         '2021-03-16');                                                 00014099
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00014199
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00014299
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00014399
+  VALUES('C2005','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00014499
+         '2021-03-16');                                                 00014599
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00014699
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00014799
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00014899
+  VALUES('C2006','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00014999
+         '2021-03-16');                                                 00015099
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00015199
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00015299
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00015399
+  VALUES('C2007','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00015499
+         '2021-03-16');                                                 00015599
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00015699
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00015799
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00015899
+  VALUES('C2008','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00015999
+         '2021-03-16');                                                 00016099
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00016199
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00016299
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00016399
+  VALUES('C2009','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00016499
+         '2021-03-16');                                                 00016599
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00016699
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00016799
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00016899
+  VALUES('C2010','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00016999
+         '2021-03-16');                                                 00017099
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00017199
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00017299
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00017399
+  VALUES('C2011','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00017499
+         '2021-03-16');                                                 00017599
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00017699
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00017799
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00017899
+  VALUES('C2012','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00017999
+         '2021-03-16');                                                 00018099
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00018199
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00018299
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00018399
+  VALUES('C2013','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00018499
+         '2021-03-16');                                                 00018599
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00018699
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00018799
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00018899
+  VALUES('C2014','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00018999
+         '2021-03-16');                                                 00019099
+  INSERT INTO IBMUSER.CLAIM_TSQ(                                        00019199
+   CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,                     00019299
+        CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT)                      00019399
+  VALUES('C2015','ANIL KUMAR','P11111','MEDICAL','PENDING','123.45',    00019499
+         '2021-03-16');                                                 00019599
+--                                                                      00019699
+--CREATE TABLE IBMUSER.CLAIM_TSQ(                                       00019899
+--     CLAIM_NUMBER    CHAR(10)  NOT NULL,                              00020099
+--     CUST_NAME       CHAR(10),                                        00030099
+--     POLICY_NUMBER   CHAR(10),                                        00040099
+--     CLIAM_TYPE      CHAR(10),                                        00050099
+--     CLIAM_STATUS    CHAR(10),                                        00060099
+--     CLAIM_AMOUNT    CHAR(06),                                        00070099
+--     CLAIM_SUBMIT_DT DATE) IN DSNDB04.FILEA;                          00080099
+--                                                                      00090099
+

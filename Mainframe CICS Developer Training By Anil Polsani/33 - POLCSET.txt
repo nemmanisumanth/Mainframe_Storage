@@ -1,0 +1,218 @@
+POLCSET DFHMSD TYPE=&SYSPARM,LANG=COBOL,MODE=INOUT,                    X
+               TERM=ALL,STORAGE=AUTO,TIOAPFX=YES,                      X
+               MAPATTS=(COLOR),DSATTS=(COLOR),                         X
+               CTRL=(FREEKB,ALARM,FRSET)
+**************************************************************
+POLCMAP DFHMDI SIZE=(24,80),LINE=1,COLUMN=1
+**************************************************************
+        DFHMDF POS=(1,1),INITIAL='POLCMAP',LENGTH=7,                   X
+               ATTRB=(ASKIP,NORM)
+        DFHMDF POS=(1,27),INITIAL='POLICY INQUIRY SCREEN',LENGTH=21,   X
+               ATTRB=(ASKIP,NORM)
+        DFHMDF POS=(1,57),INITIAL='DATE',LENGTH=4,                     X
+               ATTRB=(NORM,PROT),COLOR=BLUE
+        DFHMDF POS=(1,68),INITIAL='TIME',LENGTH=4,                     X
+               ATTRB=(NORM,PROT),COLOR=BLUE
+TRANID  DFHMDF POS=(1,76),INITIAL='XXXX',LENGTH=4,                     X
+               ATTRB=(NORM,PROT),COLOR=BLUE
+***********************************************************************
+        DFHMDF POS=(2,25),LENGTH=25,ATTRB=(ASKIP,NORM),                X
+               INITIAL='MAINFRAME ONLINE TRAINING'
+DATE    DFHMDF POS=(2,55),INITIAL='__________',LENGTH=10,              X
+               ATTRB=(NORM,PROT)
+TIME    DFHMDF POS=(2,66),INITIAL='__________',ATTRB=(NORM,PROT),      X
+               LENGTH=10
+        DFHMDF POS=(3,30),INITIAL='BY ANIL POLSANI',LENGTH=15,         X
+               ATTRB=(ASKIP,BRT)
+**************************************************************
+        DFHMDF POS=(4,59),INITIAL='PAGE NO:',LENGTH=8,ATTRB=(ASKIP)
+PAGENO  DFHMDF POS=(4,69),INITIAL='  ',LENGTH=02,ATTRB=(ASKIP)
+**************************************************************
+        DFHMDF POS=(5,1),INITIAL='POLICY-NUMBER:',LENGTH=14,           X
+               ATTRB=(ASKIP,NORM)
+POLCYID DFHMDF POS=(5,17),INITIAL='__________',LENGTH=13,              X
+               ATTRB=(UNPROT,NORM,IC)
+**************************************************************
+        DFHMDF POS=(7,1),INITIAL='SNO#',LENGTH=04,                     X
+               ATTRB=(ASKIP,NORM)
+        DFHMDF POS=(7,8),INITIAL='CLAIM-NUMBER',LENGTH=12,             X
+               ATTRB=(ASKIP,NORM)
+        DFHMDF POS=(7,23),INITIAL='CLAIM-TYPE',LENGTH=10,              X
+               ATTRB=(ASKIP,NORM)
+        DFHMDF POS=(7,36),INITIAL='CLAIM-STATUS',LENGTH=12,            X
+               ATTRB=(ASKIP,NORM)
+        DFHMDF POS=(7,51),INITIAL='CLAIM-AMOUNT',LENGTH=12,            X
+               ATTRB=(ASKIP,NORM)
+        DFHMDF POS=(7,65),INITIAL='CLAIM-SUBMIT-DT',LENGTH=15,         X
+               ATTRB=(ASKIP,NORM)
+**************************************************************
+SNO1    DFHMDF POS=(09,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMN1 DFHMDF POS=(09,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMT1 DFHMDF POS=(09,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMS1 DFHMDF POS=(09,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMA1 DFHMDF POS=(09,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMD1 DFHMDF POS=(09,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+SNO2    DFHMDF POS=(10,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMN2 DFHMDF POS=(10,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMT2 DFHMDF POS=(10,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMS2 DFHMDF POS=(10,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMA2 DFHMDF POS=(10,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMD2 DFHMDF POS=(10,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+SNO3    DFHMDF POS=(11,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMN3 DFHMDF POS=(11,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMT3 DFHMDF POS=(11,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMS3 DFHMDF POS=(11,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMA3 DFHMDF POS=(11,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMD3 DFHMDF POS=(11,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+SNO4    DFHMDF POS=(12,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMN4 DFHMDF POS=(12,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMT4 DFHMDF POS=(12,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMS4 DFHMDF POS=(12,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMA4 DFHMDF POS=(12,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMD4 DFHMDF POS=(12,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+SNO5    DFHMDF POS=(13,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMN5 DFHMDF POS=(13,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMT5 DFHMDF POS=(13,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMS5 DFHMDF POS=(13,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMA5 DFHMDF POS=(13,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMD5 DFHMDF POS=(13,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+SNO6    DFHMDF POS=(14,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMN6 DFHMDF POS=(14,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMT6 DFHMDF POS=(14,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMS6 DFHMDF POS=(14,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMA6 DFHMDF POS=(14,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMD6 DFHMDF POS=(14,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+SNO7    DFHMDF POS=(15,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMN7 DFHMDF POS=(15,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMT7 DFHMDF POS=(15,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMS7 DFHMDF POS=(15,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMA7 DFHMDF POS=(15,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMD7 DFHMDF POS=(15,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+SNO8    DFHMDF POS=(16,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMN8 DFHMDF POS=(16,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMT8 DFHMDF POS=(16,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMS8 DFHMDF POS=(16,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMA8 DFHMDF POS=(16,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMD8 DFHMDF POS=(16,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+SNO9    DFHMDF POS=(17,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMN9 DFHMDF POS=(17,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMT9 DFHMDF POS=(17,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMS9 DFHMDF POS=(17,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMA9 DFHMDF POS=(17,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMD9 DFHMDF POS=(17,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+SNOA    DFHMDF POS=(18,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMNA DFHMDF POS=(18,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMTA DFHMDF POS=(18,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMSA DFHMDF POS=(18,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMAA DFHMDF POS=(18,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMDA DFHMDF POS=(18,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+SNOB    DFHMDF POS=(19,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMNB DFHMDF POS=(19,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMTB DFHMDF POS=(19,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMSB DFHMDF POS=(19,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMAB DFHMDF POS=(19,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMDB DFHMDF POS=(19,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+SNOC    DFHMDF POS=(20,2),INITIAL='__',LENGTH=02,                      X
+               ATTRB=(PROT,NORM)
+CLAIMNC DFHMDF POS=(20,8),INITIAL='____________',LENGTH=10,            X
+               ATTRB=(PROT,NORM)
+CLAIMTC DFHMDF POS=(20,23),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMSC DFHMDF POS=(20,36),INITIAL='__________',LENGTH=10,             X
+               ATTRB=(PROT,NORM)
+CLAIMAC DFHMDF POS=(20,51),INITIAL='______',LENGTH=06,                 X
+               ATTRB=(PROT,NORM)
+CLAIMDC DFHMDF POS=(20,65),INITIAL='__________',LENGTH=15,             X
+               ATTRB=(PROT,NORM)
+**************************************************************
+        DFHMDF POS=(22,02),INITIAL='F1:HELP',LENGTH=07,                X
+               ATTRB=(ASKIP,NORM)
+        DFHMDF POS=(22,13),INITIAL='F2:CLEAR',LENGTH=08,               X
+               ATTRB=(ASKIP,NORM)
+        DFHMDF POS=(22,24),INITIAL='F3:EXIT',LENGTH=07,                X
+               ATTRB=(ASKIP,NORM)
+**************************************************************
+MESSAGE DFHMDF POS=(23,02),INITIAL=' ',LENGTH=70,                      X
+               ATTRB=(PROT,BRT)
+        DFHMDF POS=(23,79),INITIAL=' ',LENGTH=01,ATTRB=(ASKIP,DRK,FSET)
+**************************************************************
+        DFHMSD TYPE=FINAL
+        END
+

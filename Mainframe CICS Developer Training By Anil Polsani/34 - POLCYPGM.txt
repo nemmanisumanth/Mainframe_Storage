@@ -1,0 +1,383 @@
+       ID DIVISION.
+       PROGRAM-ID. POLCYPGM.
+       AUTHOR. ANIL POLSANI.
+       DATE-WRITTEN. TODAY.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+           EXEC SQL INCLUDE DCLCLAIM END-EXEC.
+           EXEC SQL DECLARE CUR-NAME CURSOR FOR
+              SELECT
+              CLAIM_NUMBER,CUST_NAME,POLICY_NUMBER,CLIAM_TYPE,
+                   CLIAM_STATUS,CLAIM_AMOUNT,CLAIM_SUBMIT_DT
+              FROM CLAIM_TSQ
+              WHERE POLICY_NUMBER = :DCL-POLICY-NUMBER
+           END-EXEC
+
+       COPY POLCCOPY.
+       COPY DFHAID.
+       COPY DFHBMSCA.
+       01 WS-POLICY-NUMBER PIC X(10) VALUE SPACE.
+       01 WS-RESPCODE    PIC  S9(08) COMP.
+       01 WS-STR      PIC X(35) VALUE
+                      '____ ____ TYEP CESF GOOD FOR EXIT'.
+       01 WS-I  PIC 9(02) VALUE ZERO.
+       01 WS-ITEM-COUNT PIC 9(04) COMP.
+       01 WS-END-OF-QUEUE PIC X(01) VALUE SPACE.
+       01 CURRENT-TIME.
+         05 TSTAMP         PIC S9(14) COMP.
+         05 OUTDATE        PIC X(10) VALUE SPACE.
+         05 OUTTIME        PIC X(08) VALUE SPACE.
+       01 WS-ABENDPGM      PIC X(08) VALUE 'ABENDPGM'.
+       01 WS-END-LOOP      PIC X(01) VALUE SPACE.
+       01 WS-CONTINUE-PROCESS PIC X(01) VALUE SPACE.
+       01 WS-COMMAREA.
+         05 WS-HOLD-POLICY-NUMBER PIC X(10) VALUE SPACE.
+         05 WS-HOLD-PAGENO   PIC X(02) VALUE SPACE.
+         05 WS-NEXT-PAGE     PIC X(01) VALUE SPACE.
+         05 WS-SEQ-NO        PIC 9(02) VALUE ZERO.
+       01 WS-ROW-COUNT     PIC S9(09) COMP VALUE +0.
+       01 WS-QUEUE-DATA.
+          03 CLAIM-NUMBER-Q   PIC X(10).
+          03 CLIAM-TYPE-Q     PIC X(10).
+          03 CLIAM-STATUS-Q   PIC X(10).
+          03 CLAIM-AMOUNT-Q   PIC X(6).
+          03 CLAIM-SUBMIT-DT-Q  PIC X(10).
+       01 FILLER   PIC  X(50) VALUE SPACE.
+       LINKAGE SECTION.
+       01 DFHCOMMAREA.
+         05 DFH-HOLD-POLICY-NUMBER PIC X(10).
+         05 DFH-HOLD-PAGENO   PIC X(02).
+         05 DFH-NEXT-PAGE     PIC X(01).
+         05 DFH-SEQ-NO        PIC 9(02).
+       PROCEDURE DIVISION.
+       000-MAIN-PARA.
+           IF EIBCALEN = 0
+              INITIALIZE WS-COMMAREA
+              MOVE LOW-VALUES TO POLCMAPI
+              MOVE 'Please type POLICY NUMBER:' TO MESSAGEO
+              PERFORM 100-SENDMAP-PARA THRU 100-EXIT
+           ELSE
+              EVALUATE TRUE
+                WHEN EIBAID = DFHENTER
+                    PERFORM 200-PROCESS-PARA THRU 200-EXIT
+                WHEN EIBAID = DFHCLEAR OR DFHPF2
+                    INITIALIZE WS-COMMAREA
+                    MOVE LOW-VALUES TO POLCMAPI
+                    MOVE 'Please type POLICY NUMBER:' TO MESSAGEO
+                    PERFORM 100-SENDMAP-PARA THRU 100-EXIT
+                WHEN EIBAID = DFHPF3
+                    PERFORM 300-EXIT-PARA
+                WHEN OTHER
+                    MOVE LOW-VALUES TO POLCMAPI
+                    MOVE 'INVALID KEY PRRESSED ' TO MESSAGEO
+                    PERFORM 100-SENDMAP-PARA
+              END-EVALUATE
+           END-IF.
+           PERFORM 500-RETURN-TRANS.
+           GOBACK.
+       050-ASKTIME-PARA.
+           EXEC CICS
+                ASKTIME
+                ABSTIME(TSTAMP)
+           END-EXEC
+           EXEC CICS
+                FORMATTIME
+                ABSTIME(TSTAMP)
+                YYYYMMDD(OUTDATE)
+                DATESEP('/')
+                TIME(OUTTIME)
+                TIMESEP(':')
+           END-EXEC
+           MOVE EIBTRNID TO TRANIDO.
+           MOVE OUTDATE TO DATEO
+           MOVE OUTTIME TO TIMEO.
+
+       050-EXIT. EXIT.
+       100-SENDMAP-PARA.
+           PERFORM 050-ASKTIME-PARA THRU 050-EXIT.
+           IF WS-NEXT-PAGE = 'Y'
+              MOVE POLCYIDI  TO WS-HOLD-POLICY-NUMBER
+              MOVE PAGENOO   TO WS-HOLD-PAGENO
+              MOVE DFHBMPRF  TO POLCYIDA
+              MOVE 'Press enter for more claims' TO MESSAGEO.
+           EXEC CICS SEND MAP('POLCMAP') MAPSET('POLCSET')
+                     FROM(POLCMAPO) FREEKB ERASE
+           END-EXEC.
+
+       100-EXIT. EXIT.
+
+       200-PROCESS-PARA.
+           MOVE LOW-VALUES TO POLCMAPI.
+           EXEC CICS RECEIVE MAP('POLCMAP') MAPSET('POLCSET')
+                     INTO(POLCMAPI) RESP(WS-RESPCODE)
+           END-EXEC.
+
+           INSPECT POLCYIDI REPLACING ALL '_' BY ' '
+           IF POLCYIDI NOT = SPACE AND
+              POLCYIDI NOT = LOW-VALUES AND
+              POLCYIDL NOT = ZERO
+             IF POLCYIDI NOT = DFH-HOLD-POLICY-NUMBER
+               MOVE POLCYIDI TO DCL-POLICY-NUMBER
+               MOVE 'N' TO WS-CONTINUE-PROCESS
+               PERFORM 230-CHECK-ROW-COUNT THRU 230-EXIT
+               IF WS-CONTINUE-PROCESS = 'Y'
+                IF WS-ROW-COUNT > 12
+            EXEC CICS DELETEQ TS QUEUE('DB2TSQ01') NOHANDLE END-EXEC
+                  PERFORM 240-BUILD-PAGE01-TSQ  THRU 240-EXIT
+                  PERFORM 100-SENDMAP-PARA THRU 100-EXIT
+                ELSE
+                  PERFORM 250-BUILD-PAGE01 THRU 250-EXIT
+                  PERFORM 100-SENDMAP-PARA THRU 100-EXIT
+                END-IF
+               ELSE
+                  MOVE 'NO CLAIM FOR GIVEN POLICY ' TO MESSAGEO
+                  PERFORM 100-SENDMAP-PARA THRU 100-EXIT
+                  GO TO 200-EXIT
+               END-IF
+             ELSE
+             IF POLCYIDI = DFH-HOLD-POLICY-NUMBER AND
+                DFH-HOLD-PAGENO > '00'
+                IF DFH-NEXT-PAGE = 'Y'
+                   MOVE POLCYIDI  TO WS-HOLD-POLICY-NUMBER
+                   MOVE '02' TO PAGENOO
+                   PERFORM 260-BUILD-NEXTPAGE THRU 260-EXIT
+                   MOVE PAGENOO   TO WS-HOLD-PAGENO
+                   MOVE DFHBMPRF  TO POLCYIDA
+                   PERFORM 100-SENDMAP-PARA THRU 100-EXIT
+                ELSE
+                   PERFORM 270-BUILD-PAGE01-TSQ THRU 270-EXIT
+                   PERFORM 100-SENDMAP-PARA THRU 100-EXIT
+                END-IF
+             END-IF
+             END-IF
+           ELSE
+             MOVE 'ERROR: PLEASE PROVIDE POLICY NUMBER ' TO MESSAGEO
+             PERFORM 100-SENDMAP-PARA THRU 100-EXIT
+           END-IF.
+
+       200-EXIT. EXIT.
+
+       230-CHECK-ROW-COUNT.
+             EXEC SQL SELECT COUNT(*) INTO :WS-ROW-COUNT
+                      FROM CLAIM_TSQ
+                      WHERE POLICY_NUMBER = :DCL-POLICY-NUMBER
+             END-EXEC.
+             IF SQLCODE = 0
+                IF WS-ROW-COUNT > 0
+                   MOVE 'Y' TO WS-CONTINUE-PROCESS
+                END-IF
+             ELSE
+                MOVE 'ERROR IN SELECT COUNT ' TO MESSAGEO
+             END-IF.
+       230-EXIT. EXIT.
+
+       240-BUILD-PAGE01-TSQ.
+           MOVE 'N' TO WS-END-LOOP
+           MOVE 'N' TO WS-NEXT-PAGE.
+           MOVE '01' TO PAGENOO
+           ADD +1 TO WS-I
+           EXEC SQL OPEN CUR-NAME END-EXEC
+           PERFORM UNTIL WS-END-LOOP = 'Y'
+             EXEC SQL FETCH CUR-NAME INTO
+                               :DCL-CLAIM-NUMBER,
+                               :DCL-CUST-NAME,
+                               :DCL-POLICY-NUMBER,
+                               :DCL-CLIAM-TYPE,
+                               :DCL-CLIAM-STATUS,
+                               :DCL-CLAIM-AMOUNT,
+                               :DCL-CLAIM-SUBMIT-DT
+             END-EXEC
+             IF SQLCODE = 0
+               IF WS-ITEM-COUNT = 12 OR WS-I > 12
+                PERFORM 245-WRITE-Q-PARA THRU 245-EXIT
+               ELSE
+                MOVE  WS-I                TO SNOO (WS-I)
+                MOVE  DCL-CLAIM-NUMBER    TO CLAIMNO (WS-I)
+                MOVE  DCL-CLIAM-TYPE      TO CLAIMTO (WS-I)
+                MOVE  DCL-CLIAM-STATUS    TO CLAIMSO (WS-I)
+                MOVE  DCL-CLAIM-AMOUNT    TO CLAIMAO (WS-I)
+                MOVE  DCL-CLAIM-SUBMIT-DT TO CLAIMDO (WS-I)
+                PERFORM 245-WRITE-Q-PARA THRU 245-EXIT
+                ADD +1 TO WS-I
+               END-IF
+             ELSE
+             IF SQLCODE = 100
+                MOVE 'Y' TO WS-END-LOOP
+                MOVE 'Y' TO WS-NEXT-PAGE
+             ELSE
+                MOVE SQLCODE TO MESSAGEO
+             END-IF
+             END-IF
+           END-PERFORM.
+           EXEC SQL CLOSE CUR-NAME   END-EXEC.
+       240-EXIT. EXIT.
+
+       245-WRITE-Q-PARA.
+           MOVE  DCL-CLAIM-NUMBER    TO CLAIM-NUMBER-Q
+           MOVE  DCL-CLIAM-TYPE      TO CLIAM-TYPE-Q
+           MOVE  DCL-CLIAM-STATUS    TO CLIAM-STATUS-Q
+           MOVE  DCL-CLAIM-AMOUNT    TO CLAIM-AMOUNT-Q
+           MOVE  DCL-CLAIM-SUBMIT-DT TO CLAIM-SUBMIT-DT-Q
+           EXEC CICS WRITEQ TS
+                     QUEUE('DB2TSQ01')
+                     FROM(WS-QUEUE-DATA)
+                     ITEM(WS-ITEM-COUNT)
+           END-EXEC.
+
+       245-EXIT. EXIT.
+
+       250-BUILD-PAGE01.
+
+             MOVE POLCYIDI  TO DCL-POLICY-NUMBER
+                               WS-HOLD-POLICY-NUMBER.
+             MOVE 1 TO WS-I
+             MOVE 'N' TO WS-END-LOOP.
+             MOVE '01' TO PAGENOO
+             EXEC SQL OPEN CUR-NAME END-EXEC
+             PERFORM 255-FETCH-PARA THRU 255-EXIT
+                            UNTIL WS-END-LOOP = 'Y'
+             EXEC SQL CLOSE CUR-NAME   END-EXEC
+             IF WS-I NOT = 1
+              MOVE DFHBMPRF  TO POLCYIDA.
+             MOVE PAGENOO TO WS-HOLD-PAGENO.
+
+       250-EXIT. EXIT.
+
+       255-FETCH-PARA.
+           EXEC SQL FETCH CUR-NAME INTO
+                             :DCL-CLAIM-NUMBER,
+                             :DCL-CUST-NAME,
+                             :DCL-POLICY-NUMBER,
+                             :DCL-CLIAM-TYPE,
+                             :DCL-CLIAM-STATUS,
+                             :DCL-CLAIM-AMOUNT,
+                             :DCL-CLAIM-SUBMIT-DT
+           END-EXEC
+           IF SQLCODE = 0
+              MOVE  WS-I                TO SNOO (WS-I)
+              MOVE  DCL-CLAIM-NUMBER    TO CLAIMNO (WS-I)
+              MOVE  DCL-CLIAM-TYPE      TO CLAIMTO (WS-I)
+              MOVE  DCL-CLIAM-STATUS    TO CLAIMSO (WS-I)
+              MOVE  DCL-CLAIM-AMOUNT    TO CLAIMAO (WS-I)
+              MOVE  DCL-CLAIM-SUBMIT-DT TO CLAIMDO (WS-I)
+              ADD +1 TO WS-I
+           ELSE
+           IF SQLCODE = 100
+              IF WS-I = 1
+                MOVE SPACE TO PAGENOO
+                MOVE 'END OF CLAIM RECORD ' TO MESSAGEO
+              END-IF
+              MOVE 'Y' TO WS-END-LOOP
+           ELSE
+              MOVE SQLCODE TO MESSAGEO
+           END-IF
+           END-IF.
+
+       255-EXIT. EXIT.
+
+       260-BUILD-NEXTPAGE.
+           IF DFH-HOLD-PAGENO = '01'
+             MOVE 0013 TO WS-ITEM-COUNT , WS-SEQ-NO
+             EXEC CICS READQ TS
+                        QUEUE('DB2TSQ01')
+                        INTO(WS-QUEUE-DATA)
+                        ITEM(WS-ITEM-COUNT)
+                        RESP(WS-RESPCODE)
+             END-EXEC.
+             MOVE 01 TO WS-I
+             MOVE WS-SEQ-NO         TO  SNOO (WS-I)
+             MOVE CLAIM-NUMBER-Q    TO  CLAIMNO (WS-I)
+             MOVE CLIAM-TYPE-Q      TO  CLAIMTO (WS-I)
+             MOVE CLIAM-STATUS-Q    TO  CLAIMSO (WS-I)
+             MOVE CLAIM-AMOUNT-Q    TO  CLAIMAO (WS-I)
+             MOVE CLAIM-SUBMIT-DT-Q TO  CLAIMDO (WS-I)
+             ADD +1 TO WS-I WS-SEQ-NO WS-ITEM-COUNT.
+             PERFORM UNTIL WS-I > 11 OR WS-END-OF-QUEUE = 'Y'
+                 EXEC CICS READQ TS
+                           QUEUE('DB2TSQ01')
+                           INTO(WS-QUEUE-DATA)
+                           NEXT
+                           RESP(WS-RESPCODE)
+                 END-EXEC
+             IF WS-RESPCODE = DFHRESP(NORMAL)
+                MOVE WS-SEQ-NO         TO  SNOO (WS-I)
+                MOVE CLAIM-NUMBER-Q    TO  CLAIMNO (WS-I)
+                MOVE CLIAM-TYPE-Q      TO  CLAIMTO (WS-I)
+                MOVE CLIAM-STATUS-Q    TO  CLAIMSO (WS-I)
+                MOVE CLAIM-AMOUNT-Q    TO  CLAIMAO (WS-I)
+                MOVE CLAIM-SUBMIT-DT-Q TO  CLAIMDO (WS-I)
+                ADD +1 TO WS-I WS-ITEM-COUNT WS-SEQ-NO
+             ELSE
+             IF WS-RESPCODE = DFHRESP(ITEMERR)
+                MOVE 'Y' TO WS-END-OF-QUEUE
+                MOVE 'N' TO WS-NEXT-PAGE
+             ELSE
+                MOVE 'ERROR IN READ QUEUE ' TO MESSAGEO
+             END-IF
+             END-IF
+           END-PERFORM.
+       260-EXIT. EXIT.
+
+       270-BUILD-PAGE01-TSQ.
+           MOVE 'Y' TO WS-NEXT-PAGE
+           MOVE '01' TO PAGENOO
+           MOVE ZERO TO WS-ITEM-COUNT
+           ADD +1 TO WS-ITEM-COUNT
+           EXEC CICS READQ TS
+                   QUEUE('DB2TSQ01')
+                   INTO(WS-QUEUE-DATA)
+                   ITEM(WS-ITEM-COUNT)
+                   RESP(WS-RESPCODE)
+           END-EXEC.
+           MOVE 01 TO WS-I
+           MOVE WS-I              TO  SNOO (WS-I)
+           MOVE CLAIM-NUMBER-Q    TO  CLAIMNO (WS-I)
+           MOVE CLIAM-TYPE-Q      TO  CLAIMTO (WS-I)
+           MOVE CLIAM-STATUS-Q    TO  CLAIMSO (WS-I)
+           MOVE CLAIM-AMOUNT-Q    TO  CLAIMAO (WS-I)
+           MOVE CLAIM-SUBMIT-DT-Q TO  CLAIMDO (WS-I)
+           ADD +1 TO WS-I.
+           PERFORM UNTIL WS-I > 12 OR WS-END-OF-QUEUE = 'Y'
+              EXEC CICS READQ TS
+                      QUEUE('DB2TSQ01')
+                      INTO(WS-QUEUE-DATA)
+                      NEXT
+                      RESP(WS-RESPCODE)
+              END-EXEC
+            IF WS-RESPCODE = DFHRESP(NORMAL)
+              MOVE WS-I              TO  SNOO (WS-I)
+              MOVE CLAIM-NUMBER-Q    TO  CLAIMNO (WS-I)
+              MOVE CLIAM-TYPE-Q      TO  CLAIMTO (WS-I)
+              MOVE CLIAM-STATUS-Q    TO  CLAIMSO (WS-I)
+              MOVE CLAIM-AMOUNT-Q    TO  CLAIMAO (WS-I)
+              MOVE CLAIM-SUBMIT-DT-Q TO  CLAIMDO (WS-I)
+              ADD +1 TO WS-I
+            ELSE
+            IF WS-RESPCODE = DFHRESP(ITEMERR)
+              MOVE 'Y' TO WS-END-OF-QUEUE
+            ELSE
+              MOVE 'ERROR IN READ QUEUE ' TO MESSAGEO
+            END-IF
+            END-IF
+           END-PERFORM.
+       270-EXIT. EXIT.
+       300-EXIT-PARA.
+           EXEC CICS SEND TEXT FROM(WS-STR) ERASE  END-EXEC.
+           EXEC CICS SEND CONTROL FREEKB END-EXEC.
+           EXEC CICS    RETURN    END-EXEC.
+
+       300-EXIT. EXIT.
+
+       500-RETURN-TRANS.
+           EXEC CICS RETURN TRANSID('POLC') COMMAREA(WS-COMMAREA)
+                    LENGTH(LENGTH OF WS-COMMAREA)
+           END-EXEC.
+
+       500-EXIT. EXIT.
+

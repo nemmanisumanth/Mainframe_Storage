@@ -1,0 +1,18 @@
+//S1304EX JOB NOTIFY=&SYSUID                                            00010000
+//STEP1 EXEC PGM=IDCAMS                                                 00020000
+//SYSPRINT DD SYSOUT=*                                                  00030000
+//SYSOUT DD SYSOUT=*                                                    00040000
+//SYSIN DD *                                                            00050000
+   DEFINE CLUSTER(NAME(S1304.CICS.EMPKSDS) -                            00060003
+      VOLUMES(S7SYS1) -                                                 00070000
+      TRACK(1,1) -                                                      00080000
+      CISZ(512) -                                                       00090000
+      KEYS(6,0)-                                                        00090103
+      FREESPACE(10,10) -                                                00090200
+      RECORDSIZE(46,46) -                                               00091002
+      INDEXED) -                                                        00100000
+   DATA(NAME(S1304.CICS.EMPKSDS.DATA)) -                                00120003
+   INDEX(NAME(S1304.CICS.EMPKSDS.INDEX))                                00121003
+/*                                                                      00130000
+//                                                                      00140000
+

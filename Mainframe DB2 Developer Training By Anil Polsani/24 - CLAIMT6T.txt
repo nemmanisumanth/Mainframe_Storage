@@ -1,0 +1,24 @@
+--DROP TABLE CLAIM_T6;                                                  00000130
+                                                                        00000231
+--SELECT * FROM IBMUSER.CLAIM_T6                                        00000322
+--WHERE CLAIM_SUBMIT_DT >= CURRENT DATE - 5 DAYS;                       00000422
+                                                                        00000519
+--   CREATE TABLE IBMUSER.CLAIM_T6(                                     00010032
+--        CLAIM_NUMBER    CHAR(05) NOT NULL PRIMARY KEY,                00020032
+--        CUST_NAME       CHAR(10),                                     00030032
+--        CLAIM_AMOUNT    DECIMAL(5,2) CHECK(CLAIM_AMOUNT > 0),         00040032
+--        CLAIM_STATUS    CHAR(10),                                     00050032
+--        CLAIM_TYPE      CHAR(10),                                     00060032
+--        POLCY_NUMBER    CHAR(05),                                     00061032
+--        CLAIM_SUBMIT_DT DATE WITH DEFAULT ) IN DSNDB04.FILEA;         00070032
+                                                                        00080000
+-- CREATE UNIQUE INDEX CLAIIDX6 ON IBMUSER.CLAIM_T6(CLAIM_NUMBER);      00081032
+                                                                        00082002
+    INSERT INTO IBMUSER.CLAIM_T6(                                       00090038
+      CLAIM_NUMBER,CUST_NAME,CLAIM_AMOUNT,CLAIM_STATUS,CLAIM_TYPE,      00100038
+      CLAIM_SUBMIT_DT,POLCY_NUMBER)                                     00111038
+    VALUES('C4444','ARUN KUMAR',200.45,'PENDING','MEDICAL',             00120040
+             '2022-05-14','P1111');                                     00130039
+                                                                        00130132
+    SELECT * FROM CLAIM_T6;                                             00131032
+

@@ -1,0 +1,87 @@
+       ID DIVISION.
+       PROGRAM-ID. MSETMULP.
+       AUTHOR. NAME.
+       DATE-WRITTEN. TODAY.
+
+       ENVIRONMENT DIVISION.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       COPY MSETMUL.
+       COPY DFHAID.
+       COPY DFHBMSCA.
+       01 WS-NUM1  PIC  9(04) VALUE ZERO.
+       01 WS-NUM2  PIC  9(04) VALUE ZERO.
+       01 WS-TOTAL PIC  9(04) VALUE ZERO.
+
+       01 WS-COMMAREA PIC  X(01) VALUE 'A'.
+       01 WS-RESPCODE PIC  S9(08) COMP.
+       01 WS-EXITMSG  PIC  X(30) VALUE 'END OF THE PROCESS'.
+       PROCEDURE DIVISION.
+       000-MAINPARA.
+           EVALUATE TRUE
+           WHEN EIBCALEN = 0
+              MOVE LOW-VALUES TO MAPMUL1O
+              PERFORM 100-SEND-MAP-PARA THRU 100-EXIT
+           WHEN EIBAID = DFHPF1 OR DFHENTER
+              PERFORM 200-PROCESS-PARA THRU 200-EXIT
+           WHEN EIBAID = DFHPF2 OR DFHCLEAR
+              MOVE LOW-VALUES TO MAPMUL1O
+              PERFORM 100-SEND-MAP-PARA THRU 100-EXIT
+           WHEN EIBAID = DFHPF3 OR DFHPF12
+      *       PERFORM 300-TERMINATE-PARA THRU 300-EXIT
+              EXEC CICS XCTL  PROGRAM('MENUPGM') END-EXEC
+           WHEN OTHER
+              MOVE 'INVALID KEY PRESSED ' TO MSGO
+              PERFORM 100-SEND-MAP-PARA THRU 100-EXIT
+           END-EVALUATE.
+           EXEC CICS RETURN TRANSID('TRN3') COMMAREA(WS-COMMAREA)
+            END-EXEC.
+           GOBACK.
+
+       100-SEND-MAP-PARA.
+           EXEC CICS
+             SEND MAP('MAPMUL1') MAPSET('MSETMUL')
+                 FROM(MAPMUL1O)
+                 ERASE
+                 RESP(WS-RESPCODE)
+           END-EXEC.
+           IF WS-RESPCODE = DFHRESP(NORMAL)
+              CONTINUE
+           END-IF.
+       100-EXIT. EXIT.
+
+       200-PROCESS-PARA.
+           MOVE LOW-VALUES TO MAPMUL1I.
+           EXEC CICS
+             RECEIVE MAP('MAPMUL1') MAPSET('MSETMUL')
+               INTO(MAPMUL1I)
+               RESP(WS-RESPCODE)
+           END-EXEC.
+           IF WS-RESPCODE = DFHRESP(NORMAL)
+               CONTINUE
+           ELSE
+           IF WS-RESPCODE = DFHRESP(MAPFAIL)
+               MOVE 'ENTER INPUT VALUE ' TO MSGO
+               PERFORM 100-SEND-MAP-PARA THRU 100-EXIT
+               GO TO 200-EXIT
+           ELSE
+              CONTINUE
+           END-IF
+           END-IF.
+           MOVE NO1I TO WS-NUM1.
+           MOVE NO2I TO WS-NUM2.
+           COMPUTE WS-TOTAL = WS-NUM1 * WS-NUM2.
+           MOVE WS-TOTAL TO TOTALO
+           PERFORM 100-SEND-MAP-PARA  THRU 100-EXIT.
+       200-EXIT. EXIT.
+
+       300-TERMINATE-PARA.
+           EXEC CICS SEND TEXT FROM(WS-EXITMSG)
+               ERASE
+               FREEKB
+           END-EXEC.
+           EXEC CICS RETURN END-EXEC.
+
+       300-EXIT. EXIT.
+

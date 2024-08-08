@@ -1,0 +1,52 @@
+       ID DIVISION.
+       PROGRAM-ID. VLDUID01.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+           EXEC SQL
+              INCLUDE SQLCA
+           END-EXEC.
+           EXEC SQL
+              INCLUDE RACFDCL
+           END-EXEC.
+       LINKAGE SECTION.
+       01 DFHCOMMAREA.
+           05 LS-USERID         PIC X(08).
+           05 LS-PASSWRD        PIC X(08).
+           05 LS-VALID-UID      PIC X(1).
+           05 LS-VALID-PSWRD    PIC X(1).
+           05 LS-VALIDATE-SW    PIC X(1).
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           IF LS-VALIDATE-SW = 'U'
+             PERFORM 100-VALIDATE-USERID-PARA
+           ELSE IF LS-VALIDATE-SW = 'P'
+             PERFORM 200-VALIDATE-PSWRD-PARA
+           ELSE
+             CONTINUE
+           END-IF.
+           EXEC CICS RETURN END-EXEC.
+           GOBACK.
+       100-VALIDATE-USERID-PARA.
+           EXEC SQL
+             SELECT LOGIN_ID INTO   :HS-LOGIN-ID
+                     FROM RACFTAB WHERE  LOGIN_ID = :LS-USERID
+           END-EXEC.
+           IF SQLCODE = 0
+              MOVE 'Y' TO LS-VALID-UID
+           ELSE
+              MOVE 'N' TO LS-VALID-UID
+           END-IF.
+       200-VALIDATE-PSWRD-PARA.
+           EXEC SQL
+             SELECT LOGIN_ID,LOGIN_PSWRD INTO
+                    :HS-LOGIN-ID,:HS-LOGIN-PSWRD
+             FROM  RACFTAB
+             WHERE  LOGIN_ID    = :LS-USERID  AND
+                    LOGIN_PSWRD = :LS-PASSWRD
+           END-EXEC.
+           IF SQLCODE = 0
+              MOVE 'Y' TO LS-VALID-PSWRD
+           ELSE
+              MOVE 'N' TO LS-VALID-PSWRD
+           END-IF.
+

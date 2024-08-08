@@ -1,0 +1,34 @@
+        PRINT NOGEN
+MSETMUL DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL,                    X
+               TERM=ALL,STORAGE=AUTO,MAPATTS=COLOR,                    X
+               TIOAPFX=YES,CTRL=(FREEKB,FRSET)
+**********************************************************************
+MAPMUL1 DFHMDI SIZE=(24,80),LINE=1,COLUMN=1
+        DFHMDF POS=(3,25),INITIAL='MULTIPLICAITON OF 2 NUM',LENGTH=24, X
+               ATTRB=(ASKIP,BRT)
+**********************************************************************
+        DFHMDF POS=(11,30),INITIAL='NO1: ',LENGTH=5,                   X
+               ATTRB=(ASKIP,NORM)
+NO1     DFHMDF POS=(11,36),INITIAL='____',LENGTH=4,                    X
+               ATTRB=(UNPROT,NORM,IC,NUM),PICIN='9(04)',PICOUT='9(04)'
+        DFHMDF POS=(11,41),INITIAL=' ',LENGTH=1,ATTRB=ASKIP
+**********************************************************************
+        DFHMDF POS=(12,30),INITIAL='NO2: ',LENGTH=5,                   X
+               ATTRB=(ASKIP,NORM)
+NO2     DFHMDF POS=(12,36),INITIAL='____',LENGTH=4,                    X
+               ATTRB=(UNPROT,NORM,NUM),PICIN='9(04)',PICOUT='9(04)'
+        DFHMDF POS=(12,41),INITIAL=' ',LENGTH=1,ATTRB=PROT
+**********************************************************************
+        DFHMDF POS=(13,29),INITIAL='TOTAL:',LENGTH=6,                  X
+               ATTRB=(ASKIP,NORM)
+TOTAL   DFHMDF POS=(13,36),INITIAL='_____',LENGTH=5,                   X
+               ATTRB=(PROT,NORM,NUM),                                  X
+               PICIN='9(05)',PICOUT='9(05)'
+        DFHMDF POS=(13,42),INITIAL=' ',LENGTH=1,ATTRB=(ASKIP)
+**********************************************************************
+MSG     DFHMDF POS=(22,01),INITIAL=' ',LENGTH=70,ATTRB=(PROT,NORM)
+        DFHMDF POS=(23,01),INITIAL='F1- PROCESS F2 - CLEAR F3-EXIT',   X
+               LENGTH=32,ATTRB=(PROT,ASKIP)
+        DFHMSD TYPE=FINAL
+        END
+

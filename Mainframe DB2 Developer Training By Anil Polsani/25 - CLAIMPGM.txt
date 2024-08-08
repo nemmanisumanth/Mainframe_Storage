@@ -1,0 +1,114 @@
+       ID DIVISION.
+       PROGRAM-ID. CLAIMPGM.
+       AUTHOR. UR NAME.
+       DATE-WRITTEN. TODAY.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       WORKING-STORAGE SECTION.
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+           EXEC SQL INCLUDE DCLCLAI6 END-EXEC.
+
+           EXEC SQL DECLARE C-NAME CURSOR  WITH HOLD FOR
+                 SELECT
+                   CLAIM_NUMBER,CUST_NAME,CLAIM_AMOUNT,CLAIM_STATUS,
+                   CLAIM_TYPE,CLAIM_SUBMIT_DT,POLCY_NUMBER
+                 FROM CLAIM_T6
+                 WHERE CLAIM_SUBMIT_DT >= CURRENT DATE - 1 DAY
+                 FOR UPDATE OF CLAIM_STATUS
+           END-EXEC.
+
+       01 WS-NULL-IND    PIC  S9(04) COMP.
+       01 WS-ROW-COUNT   PIC  9(02) VALUE ZERO.
+       01 WS-ABENDPGM    PIC  X(08) VALUE 'ABENDPGM'.
+       01 CLAIM-DETAILS.
+          03 POLICY-NUMBER   PIC  X(05) VALUE SPACE.
+          03 CLAIM-NUMBER    PIC  X(05) VALUE SPACE.
+          03 CLAIM-AMOUNT    PIC  9(03)V9(2) VALUE ZERO.
+          03 CLAIM-SUBMIT-DT PIC  X(10)  VALUE SPACE.
+          03 SUB-RTN-CODE    PIC  X(02) VALUE SPACE.
+          03 REJECT-ERR-MSG  PIC  X(30) VALUE SPACE.
+
+       PROCEDURE DIVISION.
+       000-MAIN-PARA.
+           DISPLAY 'CLAIMPGM STARTED'.
+
+           EXEC SQL OPEN C-NAME END-EXEC.
+           IF SQLCODE NOT = 00
+              DISPLAY 'ERROR IN MAIN PGM '
+              DISPLAY 'ERROR ON OPEN CURSOR SQLCODE ' SQLCODE
+              CALL WS-ABENDPGM
+           END-IF.
+
+           PERFORM 200-FETCH-PARA THRU 200-EXIT
+                         UNTIL SQLCODE = 100.
+           EXEC SQL CLOSE C-NAME END-EXEC.
+
+           DISPLAY 'TOTAL ROW COUNT ' WS-ROW-COUNT.
+           STOP RUN.
+       200-FETCH-PARA.
+           EXEC SQL FETCH C-NAME INTO
+                 :DCL-CLAIM-NUMBER,
+                 :DCL-CUST-NAME,
+                 :DCL-CLAIM-AMOUNT,
+                 :DCL-CLAIM-STATUS,
+                 :DCL-CLAIM-TYPE:WS-NULL-IND,
+                 :DCL-CLAIM-SUBMIT-DT,
+                 :DCL-POLCY-NUMBER
+           END-EXEC.
+           IF SQLCODE = 0
+              ADD +1 TO WS-ROW-COUNT
+              IF WS-NULL-IND < 0
+                 MOVE SPACE TO DCL-CLAIM-TYPE
+              END-IF
+              PERFORM 250-VALIDATE-CLAIM-PARA THRU 250-EXIT
+           ELSE
+           IF SQLCODE = 100
+              DISPLAY 'NO RECORD FOUND'
+              CONTINUE
+           ELSE
+              DISPLAY 'ERROR IN 200-FETCH-PARA'
+              DISPLAY 'SQL CODE FOR FETCH IS ' SQLCODE
+              CALL WS-ABENDPGM
+           END-IF
+           END-IF.
+
+       200-EXIT. EXIT.
+
+       250-VALIDATE-CLAIM-PARA.
+           MOVE DCL-POLCY-NUMBER     TO  POLICY-NUMBER
+           MOVE DCL-CLAIM-NUMBER     TO  CLAIM-NUMBER
+           MOVE DCL-CLAIM-AMOUNT     TO  CLAIM-AMOUNT
+           MOVE DCL-CLAIM-SUBMIT-DT  TO  CLAIM-SUBMIT-DT
+           MOVE '00'                 TO  SUB-RTN-CODE
+           MOVE SPACE                TO  REJECT-ERR-MSG.
+
+           CALL 'POLCYPGM' USING CLAIM-DETAILS
+
+           IF SUB-RTN-CODE = '00'
+              MOVE 'INPROG' TO DCL-CLAIM-STATUS
+              EXEC SQL
+                  UPDATE CLAIM_T6
+                  SET CLAIM_STATUS = :DCL-CLAIM-STATUS
+                  WHERE CURRENT OF C-NAME
+              END-EXEC
+              IF SQLCODE = 0
+                 EXEC SQL COMMIT END-EXEC
+              ELSE
+                  DISPLAY 'ERROR IN UPDATE 250-VALIDATE-CLAIM-PARA'
+                  DISPLAY 'SQLCODE IS ' SQLCODE
+                  DISPLAY 'RECORD IN PROCESS ' DCL-CLAIM-DETAILS
+                  CALL WS-ABENDPGM
+              END-IF
+           ELSE
+              DISPLAY 'ERROR IN VALIDATION'
+              DISPLAY 'ERROR REASON ' REJECT-ERR-MSG
+              DISPLAY 'ERROR RECORD IS ' CLAIM-DETAILS
+           END-IF.
+
+       250-EXIT. EXIT.
+

@@ -1,0 +1,49 @@
+MSETLGN DFHMSD TYPE=&SYSPARM,                                          X00010026
+               MODE=INOUT,LANG=COBOL,                                  X00030006
+               STORAGE=AUTO,                                           X00032006
+               TIOAPFX=YES,                                            X00033006
+               TERM=ALL,                                               X00033106
+               MAPATTS=(COLOR,HILIGHT),                                X00033206
+               DSATTS=(COLOR,HILIGHT),                                 X00033309
+               CTRL=(FRSET,FREEKB,ALARM)                                00034006
+********************************************************************    00035026
+LGNMAP1 DFHMDI SIZE=(24,80),LINE=1,COLUMN=1                             00040026
+********************************************************************    00041022
+        DFHMDF POS=(03,20),                                            X00050029
+               INITIAL='WELCOME TO CICS REGION',                       X00051026
+               LENGTH=22,ATTRB=(ASKIP,BRT)                              00060026
+********************************************************************    00100107
+        DFHMDF POS=(08,01),LENGTH=52,ATTRB=ASKIP,COLOR=RED,            X00101032
+               INITIAL='Type your userid and password, then press ENTERX00101133
+               :'                                                       00101233
+********************************************************************    00101326
+        DFHMDF POS=(10,10),INITIAL='Userid ======>',LENGTH=14,         X00101429
+               ATTRB=PROT,COLOR=YELLOW                                  00101527
+USERID  DFHMDF POS=(10,25),INITIAL='________',HILIGHT=UNDERLINE,       X00102040
+               LENGTH=8,ATTRB=(UNPROT,IC),COLOR=TURQUOISE               00102144
+        DFHMDF POS=(10,34),ATTRB=ASKIP,LENGTH=1                         00104042
+********************************************************************    00104107
+        DFHMDF POS=(11,10),INITIAL='Password ====>',LENGTH=14,         X00104229
+               ATTRB=(PROT),COLOR=YELLOW                                00104326
+PASSWRD DFHMDF POS=(11,25),INITIAL='________',                         X00104429
+               LENGTH=8,ATTRB=(UNPROT,DRK)                              00104528
+        DFHMDF POS=(11,35),ATTRB=ASKIP,LENGTH=1                         00104735
+********************************************************************    00106035
+        DFHMDF POS=(13,06),INITIAL='New Password ====>',LENGTH=18,     X00107038
+               ATTRB=(PROT),COLOR=YELLOW                                00108035
+NPASSWD DFHMDF POS=(13,25),INITIAL='________',                         X00109039
+               LENGTH=8,ATTRB=(UNPROT,DRK)                              00110035
+        DFHMDF POS=(13,35),ATTRB=ASKIP,LENGTH=1                         00120037
+********************************************************************    00130035
+MESSAGE DFHMDF POS=(23,1),                                             X00190129
+               LENGTH=79,                                              X00190208
+               ATTRB=(BRT,PROT),                                       X00190308
+               COLOR=RED                                                00190432
+        DFHMDF POS=(24,01),LENGTH=15,ATTRB=(PROT),                     X00190529
+               INITIAL='F3=Exit',COLOR=BLUE                             00190634
+DUMMY   DFHMDF POS=(24,79),                                            X00190723
+               LENGTH=1,                                               X00190823
+               ATTRB=(DRK,ASKIP,FSET)                                   00190932
+        DFHMSD TYPE=FINAL                                               00200000
+        END                                                             00210000
+

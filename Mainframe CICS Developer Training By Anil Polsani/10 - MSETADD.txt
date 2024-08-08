@@ -1,0 +1,49 @@
+MSETADD DFHMSD TYPE=&SYSPARM,                                          X00010061
+               MODE=INOUT,LANG=COBOL,                                  X00030093
+               STORAGE=AUTO,                                           X00032099
+               TIOAPFX=YES,                                            X00033089
+               TERM=ALL,                                               X00033100
+               MAPATTS=(COLOR,HILIGHT),                                X00033299
+               DSATTS=(COLOR,HILIGHT),                                 X00033300
+               CTRL=(FRSET,ALARM,FREEKB)                                00034070
+********************************************************************    00035042
+MAPADD1 DFHMDI SIZE=(24,80),LINE=1,COLUMN=1                             00040031
+********************************************************************    00041000
+        DFHMDF POS=(03,25),                                            X00050072
+               INITIAL='ADDITION OF TWO NUMBERS',                      X00051084
+               LENGTH=23,ATTRB=(ASKIP,BRT)                              00060000
+********************************************************************    00100100
+        DFHMDF POS=(11,30),INITIAL='NO1:',LENGTH=4,ATTRB=ASKIP          00101007
+NO1     DFHMDF POS=(11,35),INITIAL='____',                             X00102099
+               LENGTH=4,ATTRB=(UNPROT,IC,NUM),                         X00102176
+               PICIN='9(4)',PICOUT='9(4)'                               00103000
+        DFHMDF POS=(11,40),ATTRB=ASKIP,LENGTH=1                         00104099
+********************************************************************    00104100
+        DFHMDF POS=(12,30),INITIAL='NO2:',LENGTH=4,ATTRB=ASKIP          00104200
+NO2     DFHMDF POS=(12,35),INITIAL='____',                             X00104386
+               LENGTH=4,ATTRB=(UNPROT,NUM),                            X00104493
+               PICIN='9(4)',PICOUT='9(4)'                               00104500
+        DFHMDF POS=(12,40),ATTRB=PROT,LENGTH=1                          00104699
+********************************************************************    00105000
+        DFHMDF POS=(13,28),INITIAL='TOTAL:',LENGTH=6,ATTRB=ASKIP        00110000
+TOTAL   DFHMDF POS=(13,35),ATTRB=(PROT,NUM),INITIAL='_____',           X00120095
+               PICIN='9(5)',PICOUT='Z(5)',LENGTH=5                      00130008
+        DFHMDF POS=(13,41),ATTRB=PROT,LENGTH=1                          00130100
+********************************************************************    00131000
+        DFHMDF POS=(23,02),LENGTH=18,ATTRB=(PROT),                     X00140000
+               INITIAL='F1: DISPLAY TOTAL '                             00150000
+        DFHMDF POS=(23,29),LENGTH=16,ATTRB=(PROT),                     X00160000
+               INITIAL='F2: CLEAR SCREEN'                               00170000
+        DFHMDF POS=(23,54),LENGTH=15,ATTRB=(PROT),                     X00180089
+               INITIAL='F3: EXIT SCREEN'                                00190000
+MESSAGE DFHMDF POS=(22,1),                                             X00190100
+               LENGTH=70,                                              X00190274
+               ATTRB=(BRT,PROT),                                       X00190300
+               COLOR=YELLOW                                             00190400
+DUMMY   DFHMDF POS=(24,79),                                            X00190564
+               LENGTH=1,INITIAL='_',                                   X00190687
+               ATTRB=(BRT,ASKIP,FSET),                                 X00190774
+               COLOR=YELLOW                                             00190864
+        DFHMSD TYPE=FINAL                                               00200000
+        END                                                             00210000
+

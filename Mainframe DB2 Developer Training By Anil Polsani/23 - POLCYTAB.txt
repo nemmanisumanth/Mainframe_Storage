@@ -1,0 +1,18 @@
+--DROP TABLE POLCY_T5;                                                  00001007
+                                                                        00002006
+-- CREATE TABLE POLCY_T6(                                               00010008
+--    POLCY_NUMBER   CHAR(05) NOT NULL PRIMARY KEY,                     00020008
+--    CUST_NAME      CHAR(10),                                          00030008
+--    INSURED_AMT    DECIMAL(5,2),                                      00040008
+--    POLCY_EXPIRE_DT  DATE NOT NULL                                    00050008
+--    ) IN DSNDB04.FILEA;                                               00060008
+                                                                        00070000
+--CREATE UNIQUE INDEX POLCYIDX ON IBMUSER.POLCY_T6(POLCY_NUMBER);       00080010
+                                                                        00081010
+  INSERT INTO POLCY_T6 (                                                00090010
+   POLCY_NUMBER, CUST_NAME , INSURED_AMT , POLCY_EXPIRE_DT )            00100010
+   VALUES ('P1111','ANIL KUMAR', 300.00,'2022-05-13');                  00110010
+                                                                        00120004
+ SELECT * FROM POLCY_T6;                                                00130010
+                                                                        00140010
+

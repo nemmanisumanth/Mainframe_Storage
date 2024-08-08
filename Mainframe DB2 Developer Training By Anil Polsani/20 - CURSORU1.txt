@@ -1,0 +1,135 @@
+       ID DIVISION.                                                     00010000
+       PROGRAM-ID. CURSORU1.                                            00020009
+       AUTHOR. NAME.                                                    00030000
+       DATE-WRITTEN. TODAY.                                             00040000
+                                                                        00050000
+       ENVIRONMENT DIVISION.                                            00060001
+       INPUT-OUTPUT SECTION.                                            00070000
+       FILE-CONTROL.                                                    00080000
+           SELECT CLAIM-OTFILE ASSIGN TO CLAIMDD1                       00081007
+           ORGANIZATION IS SEQUENTIAL                                   00082007
+           ACCESS MODE IS SEQUENTIAL                                    00083007
+           FILE STATUS IS WS-OT-STATUS.                                 00084007
+                                                                        00090000
+       DATA DIVISION.                                                   00100000
+       FILE SECTION.                                                    00110000
+       FD CLAIM-OTFILE                                                  00111007
+           LABEL RECORD ARE STANDARD.                                   00112007
+       COPY CLAIMCPY.                                                   00113007
+       WORKING-STORAGE SECTION.                                         00120000
+           EXEC SQL INCLUDE SQLCA END-EXEC.                             00130000
+           EXEC SQL INCLUDE DCLCLAIM END-EXEC.                          00140000
+           EXEC SQL                                                     00141003
+             DECLARE C-NAME CURSOR WITH HOLD FOR                        00142012
+               SELECT CLAIM_NUMBER,                                     00143003
+                      CUST_NAME,                                        00144003
+                      CLAIM_AMOUNT,                                     00145003
+                      CLAIM_TYPE,                                       00146003
+                      CLAIM_STATUS,                                     00147003
+                      CLAIM_SUB_DT                                      00148003
+               FROM CLAIM_T61                                           00149003
+               FOR UPDATE OF CLAIM_AMOUNT                               00149109
+           END-EXEC.                                                    00149203
+       01 WS-NULL-IND     PIC  S9(04) COMP.                             00150005
+       01 WS-OT-STATUS    PIC   X(02) VALUE SPACE.                      00151007
+       01 WS-ROW-COUNT    PIC   9(02) VALUE ZERO.                       00160000
+       01 WS-ABENDPGM     PIC   X(08) VALUE 'ABENDPGM'.                 00170000
+       01 WS-END-OF-ROWS  PIC   X(01) VALUE SPACE.                      00180003
+       01 WS-UPDATE-CNT   PIC   9(02) VALUE ZERO.                       00181011
+       PROCEDURE DIVISION.                                              00190000
+       000-MAIN-PARA.                                                   00200000
+           DISPLAY 'CBLPGM04 STARTED'.                                  00210000
+                                                                        00210107
+           PERFORM 100-INITIAL-PARA THRU 100-EXIT.                      00210207
+           PERFORM 200-FETCH-PARA THRU 200-EXIT                         00210307
+                             UNTIL WS-END-OF-ROWS = 'Y'.                00210408
+                                                                        00210507
+           CLOSE CLAIM-OTFILE.                                          00210607
+           EXEC SQL CLOSE C-NAME  END-EXEC.                             00210707
+           DISPLAY 'TOTAL ROW COUNT ' WS-ROW-COUNT.                     00210807
+           STOP RUN.                                                    00210907
+                                                                        00211007
+       100-INITIAL-PARA.                                                00211107
+                                                                        00211207
+           MOVE 'N' TO WS-END-OF-ROWS.                                  00211303
+           EXEC SQL  OPEN C-NAME END-EXEC.                              00212003
+           IF SQLCODE NOT = 000                                         00213003
+             DISPLAY 'ERROR IN OPEN CURSOR '                            00214003
+             DISPLAY 'SQLCODE  ' SQLCODE                                00215003
+             CALL WS-ABENDPGM                                           00216003
+           END-IF.                                                      00217003
+                                                                        00217107
+           OPEN OUTPUT CLAIM-OTFILE                                     00217207
+           IF WS-OT-STATUS NOT = '00'                                   00217307
+               DISPLAY 'ERROR IN FILE OPEN'                             00217407
+               DISPLAY 'STATUS IS ' WS-OT-STATUS                        00217507
+               CALL WS-ABENDPGM                                         00217607
+           END-IF.                                                      00217707
+                                                                        00217807
+       100-EXIT. EXIT.                                                  00217907
+                                                                        00218007
+       200-FETCH-PARA.                                                  00218107
+             EXEC SQL                                                   00230003
+              FETCH C-NAME INTO                                         00240003
+                 :DCL-CLAIM-NUMBER,                                     00250000
+                 :DCL-CUST-NAME,                                        00260000
+                 :DCL-CLAIM-AMOUNT,                                     00262000
+                 :DCL-CLAIM-TYPE,                                       00263000
+                 :DCL-CLAIM-STATUS:WS-NULL-IND,                         00264005
+                 :DCL-CLAIM-SUB-DT                                      00270003
+             END-EXEC                                                   00320004
+             EVALUATE TRUE                                              00330003
+             WHEN SQLCODE = 000                                         00340003
+               IF WS-NULL-IND  < 0                                      00341005
+                  MOVE SPACE TO DCL-CLAIM-STATUS                        00342005
+               END-IF                                                   00343005
+               ADD +1 TO WS-ROW-COUNT                                   00351003
+               PERFORM 240-UPDATE-PARA THRU 240-EXIT                    00351109
+               PERFORM 250-MOVE-WRITE-PARA THRU 250-EXIT                00351207
+             WHEN SQLCODE = 100                                         00352003
+               DISPLAY 'END OF THE RESULT'                              00353003
+               MOVE 'Y' TO WS-END-OF-ROWS                               00354003
+             WHEN OTHER                                                 00360003
+               DISPLAY 'ERROR IN SELECT QUERY '                         00370003
+               DISPLAY 'SQLCODE IS ' SQLCODE                            00380003
+               CALL WS-ABENDPGM                                         00390003
+             END-EVALUATE.                                              00400007
+       200-EXIT. EXIT.                                                  00402007
+                                                                        00403007
+       240-UPDATE-PARA.                                                 00403109
+           COMPUTE DCL-CLAIM-AMOUNT = DCL-CLAIM-AMOUNT + 100.           00403210
+           EXEC SQL                                                     00403309
+              UPDATE CLAIM_T61                                          00403409
+              SET CLAIM_AMOUNT = :DCL-CLAIM-AMOUNT                      00403509
+              WHERE CURRENT OF C-NAME                                   00403609
+           END-EXEC.                                                    00403709
+           IF SQLCODE = 000                                             00403809
+              ADD +1 TO WS-UPDATE-CNT                                   00403911
+              IF WS-UPDATE-CNT = 3                                      00404011
+                 EXEC SQL COMMIT END-EXEC                               00404111
+                 MOVE ZERO TO WS-UPDATE-CNT                             00404211
+              END-IF                                                    00404311
+           ELSE                                                         00404409
+              DISPLAY 'ERROR IN 240-UPDATE'                             00404509
+              DISPLAY 'SQLCODE ' SQLCODE                                00404609
+              DISPLAY 'RECORD IS ' DCL-CLAIM-NUMBER                     00404709
+              CALL WS-ABENDPGM                                          00404809
+           END-IF.                                                      00404909
+       240-EXIT. EXIT.                                                  00405009
+       250-MOVE-WRITE-PARA.                                             00405107
+           MOVE DCL-CLAIM-NUMBER    TO CLAIM-NUMBER                     00405207
+           MOVE DCL-CUST-NAME-TEXT  TO CUST-NAME-TEXT                   00406007
+           MOVE DCL-CLAIM-AMOUNT    TO CLAIM-AMOUNT                     00407007
+           MOVE DCL-CLAIM-TYPE      TO CLAIM-TYPE                       00408007
+           MOVE DCL-CLAIM-STATUS    TO CLAIM-STATUS                     00409007
+           MOVE DCL-CLAIM-SUB-DT    TO CLAIM-SUB-DT                     00410007
+                                                                        00420007
+           WRITE CLAIM-DETAILS.                                         00430007
+           IF WS-OT-STATUS NOT = '00'                                   00440007
+              DISPLAY 'ERROR IN WRITE 250-PARA'                         00450007
+              DISPLAY 'STATUS CODE IS ' WS-OT-STATUS                    00460007
+              CALL WS-ABENDPGM                                          00470007
+           END-IF.                                                      00480007
+                                                                        00490007
+       250-EXIT. EXIT.                                                  00500007
+

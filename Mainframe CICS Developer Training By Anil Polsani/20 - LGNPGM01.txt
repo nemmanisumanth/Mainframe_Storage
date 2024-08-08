@@ -1,0 +1,119 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. LGNPGM01.                                            00020000
+       AUTHOR. NAME.                                                    00021010
+       DATE-WRITTEN. TODAY.                                             00022010
+                                                                        00023010
+       ENVIRONMENT DIVISION.                                            00024010
+       INPUT-OUTPUT SECTION.                                            00025010
+       FILE-CONTROL.                                                    00026010
+                                                                        00027010
+       DATA DIVISION.                                                   00030000
+       WORKING-STORAGE SECTION.                                         00040000
+      *CHANGE HERE                                                      00041010
+       01 WS-COMMAREA.                                                  00050000
+          05 WS-USERID         PIC X(08).                               00060000
+          05 WS-PASSWRD        PIC X(08).                               00070000
+          05 WS-VALID-UID      PIC X(1).                                00080000
+          05 WS-VALID-PSWRD    PIC X(1).                                00090008
+          05 WS-VALIDATE-SW    PIC X(1).                                00100000
+       01 WS-RESPCODE PIC S9(8) COMP.                                   00110000
+       01 WS-STR      PIC X(35) VALUE                                   00120000
+                      '____ ____ TYEP CESF GOOD FOR EXIT'.              00130000
+       COPY MSETLGN.                                                    00140000
+       COPY DFHAID.                                                     00150000
+       COPY DFHBMSCA.                                                   00151000
+       PROCEDURE DIVISION.                                              00160000
+       000-MAIN-PARA.                                                   00170000
+           IF EIBCALEN = 0                                              00180000
+              INITIALIZE WS-COMMAREA                                    00181000
+              MOVE LOW-VALUES TO LGNMAP1I                               00190000
+              MOVE 'Please type your userid.' TO MESSAGEO               00200000
+              PERFORM 100-SENDMAP-PARA                                  00210000
+           ELSE                                                         00220000
+              EVALUATE EIBAID                                           00230000
+                WHEN DFHENTER                                           00240000
+                    PERFORM 200-PROCESS-PARA                            00250000
+                WHEN DFHCLEAR                                           00251000
+                    INITIALIZE WS-COMMAREA                              00251100
+                    MOVE LOW-VALUES TO LGNMAP1I                         00251200
+                    MOVE 'Please type your userid.' TO MESSAGEO         00251300
+                    PERFORM 100-SENDMAP-PARA                            00251400
+                WHEN DFHPF3                                             00260000
+                    PERFORM 300-EXIT-PARA                               00270000
+                WHEN OTHER                                              00280000
+                    MOVE LOW-VALUES TO LGNMAP1I                         00290000
+                    MOVE 'Please type your userid.' TO MESSAGEO         00300000
+                    PERFORM 100-SENDMAP-PARA                            00310000
+              END-EVALUATE                                              00320000
+           END-IF.                                                      00330000
+           PERFORM 500-RETURN-TRANS.                                    00340000
+           GOBACK.                                                      00350000
+       100-SENDMAP-PARA.                                                00360000
+           EXEC CICS SEND MAP('LGNMAP1') MAPSET('MSETLGN')              00370000
+                     FROM(LGNMAP1O) FREEKB ERASE                        00380000
+           END-EXEC.                                                    00390000
+       200-PROCESS-PARA.                                                00400000
+           MOVE LOW-VALUES TO LGNMAP1I.                                 00410000
+           EXEC CICS RECEIVE MAP('LGNMAP1') MAPSET('MSETLGN')           00420000
+                     INTO(LGNMAP1I) RESP(WS-RESPCODE)                   00430000
+           END-EXEC.                                                    00440000
+           MOVE SPACES TO WS-COMMAREA.                                  00441004
+           INSPECT LGNMAP1I REPLACING ALL '_' BY ' '.                   00450000
+           IF WS-RESPCODE = DFHRESP(NORMAL)                             00460000
+              IF  USERIDI = SPACES OR LOW-VALUES                        00470007
+                   MOVE 'Please type your userid.' TO MESSAGEO          00480000
+                   MOVE -1  TO  USERIDL                                 00490000
+                   PERFORM 200-SEND-ERROR-MSG                           00500000
+              ELSE                                                      00510000
+                   MOVE USERIDI TO WS-USERID                            00520000
+                   MOVE 'U' TO WS-VALIDATE-SW                           00530000
+                   MOVE 'N' TO WS-VALID-UID                             00540000
+                   EXEC CICS LINK PROGRAM('VLDUID01')                   00550000
+                          COMMAREA(WS-COMMAREA)                         00560000
+                   END-EXEC                                             00570000
+                   IF WS-VALID-UID = 'N'                                00580000
+                     MOVE 'Please type a valid userid.' TO MESSAGEO     00590000
+                     MOVE -1  TO  USERIDL                               00600000
+                     PERFORM 200-SEND-ERROR-MSG                         00610000
+                   ELSE                                                 00610100
+                     IF PASSWRDI = SPACES OR LOW-VALUES                 00621000
+                        MOVE 'Please type your password.' TO MESSAGEO   00622000
+                        MOVE -1  TO  PASSWRDL                           00623000
+                        MOVE DFHBMPRF TO USERIDA                        00623111
+                        PERFORM 200-SEND-ERROR-MSG                      00624000
+                     ELSE                                               00625000
+                        MOVE PASSWRDI TO WS-PASSWRD                     00626000
+                        MOVE 'P' TO WS-VALIDATE-SW                      00627000
+                        MOVE 'N' TO WS-VALID-PSWRD                      00628000
+                        EXEC CICS LINK PROGRAM('VLDUID01')              00629000
+                          COMMAREA(WS-COMMAREA)                         00629100
+                        END-EXEC                                        00629200
+                        IF WS-VALID-PSWRD = 'N'                         00629300
+                          MOVE 'Your password is invalid. Retry again:' 00629500
+                                      TO MESSAGEO                       00629600
+                          MOVE -1  TO  PASSWRDL                         00629700
+                          MOVE DFHBMPRF TO USERIDA                      00629811
+                          PERFORM 200-SEND-ERROR-MSG                    00629900
+                        ELSE                                            00630000
+                          EXEC CICS XCTL PROGRAM('MNU1PGM') END-EXEC    00630103
+                          MOVE 'Login Successfull. Try one More userid' 00630200
+                                                TO MESSAGEO             00630300
+                          MOVE DFHBMUNP TO USERIDA                      00630400
+                          MOVE -1  TO  USERIDL                          00630500
+                          PERFORM 200-SEND-ERROR-MSG                    00630600
+                        END-IF                                          00630700
+                     END-IF                                             00630800
+            END-IF.                                                     00631000
+       200-SEND-ERROR-MSG.                                              00640000
+           EXEC CICS SEND MAP('LGNMAP1') MAPSET('MSETLGN')              00650000
+                     FROM(LGNMAP1O) DATAONLY CURSOR                     00660000
+           END-EXEC.                                                    00670000
+       300-EXIT-PARA.                                                   00680000
+           EXEC CICS SEND TEXT FROM(WS-STR) ERASE  END-EXEC.            00690000
+           EXEC CICS SEND CONTROL FREEKB END-EXEC.                      00700000
+           EXEC CICS    RETURN    END-EXEC.                             00710000
+       500-RETURN-TRANS.                                                00720000
+           EXEC CICS RETURN TRANSID('LGN1') COMMAREA(WS-COMMAREA)       00730006
+                    LENGTH(LENGTH OF WS-COMMAREA)                       00740000
+           END-EXEC.                                                    00770000
+

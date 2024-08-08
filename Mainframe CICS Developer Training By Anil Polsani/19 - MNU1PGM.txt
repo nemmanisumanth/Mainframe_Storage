@@ -1,0 +1,120 @@
+       IDENTIFICATION  DIVISION.                                        00010000
+       PROGRAM-ID.  MNU1PGM.                                            00020003
+       ENVIRONMENT DIVISION.                                            00030000
+       DATA DIVISION.                                                   00040000
+       WORKING-STORAGE SECTION.                                         00050000
+       01  SWITCHES.                                                    00060000
+           05  VALID-DATA-SW               PIC X(01) VALUE 'Y'.         00070000
+               88  VALID-DATA              VALUE 'Y'.                   00080000
+       01  FLAGS.                                                       00090000
+           05  SEND-FLAG                   PIC X(01).                   00100000
+               88  SEND-ERASE              VALUE '1'.                   00110000
+               88  SEND-DATAONLY           VALUE '2'.                   00120000
+               88  SEND-DATAONLY-ALARM     VALUE '3'.                   00130000
+       01  PROGRAM-TABLE.                                               00140000
+           05  PROGRAM-LIST.                                            00150000
+               10  PROGRAM-1               PIC X(08) VALUE 'STAFFPGM'.  00160000
+               10  PROGRAM-2               PIC X(08) VALUE 'STUDENTP'.  00170000
+               10  PROGRAM-3               PIC X(08) VALUE 'MAINAINP'.  00180000
+               10  PROGRAM-4               PIC X(08) VALUE 'BATCHINF'.  00190000
+               10  PROGRAM-5               PIC X(08) VALUE 'MFINQPGM'.  00200000
+           05  PROGRAM-NAME                REDEFINES PROGRAM-LIST       00210000
+                                           OCCURS 5 TIMES               00220000
+                                           PIC X(08).                   00230000
+       01  SUBSCRIPTS.                                                  00240000
+           05  OPTION-SUB              PIC 9(01).                       00250000
+       01  END-OF-SESSION-MESSAGE      PIC X(37) VALUE                  00260000
+                              '____ ____ Type CESF LOGOFF for exit..'.  00270000
+       01  RESPONSE-CODE               PIC S9(08) COMP.                 00280000
+       01  COMMUNICATION-AREA          PIC X(01).                       00290000
+       COPY MNUSET1.                                                    00300000
+       COPY DFHAID.                                                     00310000
+       LINKAGE SECTION.                                                 00320000
+       01  DFHCOMMAREA                 PIC X(01).                       00330000
+       PROCEDURE DIVISION.                                              00340000
+       0000-PROCESS-MASTER-MENU.                                        00350000
+           EVALUATE TRUE                                                00360000
+               WHEN EIBCALEN = ZERO                                     00370000
+                   MOVE LOW-VALUE TO MNUMAP1O                           00380000
+                   SET SEND-ERASE TO TRUE                               00390000
+                   PERFORM 1400-SEND-MENU-MAP                           00400000
+               WHEN EIBAID = DFHCLEAR                                   00410000
+                   MOVE LOW-VALUE TO MNUMAP1O                           00420000
+                   SET SEND-ERASE TO TRUE                               00430000
+                   PERFORM 1400-SEND-MENU-MAP                           00440000
+               WHEN EIBAID = DFHPA1 OR DFHPA2 OR DFHPA3                 00450000
+                   CONTINUE                                             00460000
+               WHEN EIBAID = DFHPF3 OR DFHPF12                          00470000
+                   EXEC CICS                                            00490000
+                       XCTL PROGRAM('LGNPGM01')                         00500000
+                   END-EXEC                                             00510000
+               WHEN EIBAID = DFHENTER                                   00520000
+                   PERFORM 1000-PROCESS-MENU-MAP                        00530000
+               WHEN OTHER                                               00540000
+                   MOVE 'Invalid key pressed.' TO MESSAGEO              00550000
+                   SET SEND-DATAONLY-ALARM TO TRUE                      00560000
+                   PERFORM 1400-SEND-MENU-MAP                           00570000
+           END-EVALUATE.                                                00580000
+           EXEC CICS                                                    00590000
+               RETURN TRANSID('MNU1')                                   00600002
+                      COMMAREA(COMMUNICATION-AREA)                      00610000
+           END-EXEC.                                                    00620000
+       1000-PROCESS-MENU-MAP.                                           00630000
+           PERFORM 1100-RECEIVE-MENU-MAP.                               00640000
+           PERFORM 1200-EDIT-MENU-DATA.                                 00650000
+           IF VALID-DATA                                                00660000
+               MOVE OPTIONI TO OPTION-SUB                               00670000
+               PERFORM 1300-BRANCH-TO-PROGRAM                           00680000
+           END-IF.                                                      00690000
+           SET SEND-DATAONLY-ALARM TO TRUE.                             00700000
+           PERFORM 1400-SEND-MENU-MAP.                                  00710000
+       1100-RECEIVE-MENU-MAP.                                           00720000
+           MOVE LOW-VALUES TO MNUMAP1I.                                 00730000
+           EXEC CICS                                                    00740000
+               RECEIVE MAP('MNUMAP1')                                   00750000
+                       MAPSET('MNUSET1')                                00760000
+                       INTO(MNUMAP1I)                                   00770000
+           END-EXEC.                                                    00780000
+       1200-EDIT-MENU-DATA.                                             00790000
+           IF OPTIONI NOT = '1' AND '2' AND '3' AND '4' AND '5'         00800000
+               MOVE 'You must enter 1, 2, 3, 4, or 5.' TO MESSAGEO      00810000
+               MOVE 'N' TO VALID-DATA-SW                                00820000
+           END-IF.                                                      00830000
+       1300-BRANCH-TO-PROGRAM.                                          00840000
+           EXEC CICS XCTL PROGRAM(PROGRAM-NAME(OPTION-SUB)) END-EXEC.   00841000
+           MOVE 'That program is not available.' TO MESSAGEO.           00850000
+       1400-SEND-MENU-MAP.                                              00860000
+           MOVE 'MENU' TO TRANIDO.                                      00870000
+           EVALUATE TRUE                                                00880000
+               WHEN SEND-ERASE                                          00890000
+                   EXEC CICS                                            00900000
+                       SEND MAP('MNUMAP1')                              00910000
+                            MAPSET('MNUSET1')                           00920000
+                            FROM(MNUMAP1O)                              00930000
+                            ERASE                                       00940000
+                   END-EXEC                                             00950000
+               WHEN SEND-DATAONLY                                       00960000
+                   EXEC CICS                                            00970000
+                       SEND MAP('MNUMAP1')                              00980000
+                            MAPSET('MNUSET1')                           00990000
+                            FROM(MNUMAP1O)                              01000000
+                            DATAONLY                                    01010000
+                            FREEKB                                      01011000
+                   END-EXEC                                             01020000
+               WHEN SEND-DATAONLY-ALARM                                 01030000
+                   EXEC CICS                                            01040000
+                       SEND MAP('MNUMAP1')                              01050000
+                            MAPSET('MNUSET1')                           01060000
+                            FROM(MNUMAP1O)                              01070000
+                            DATAONLY                                    01080000
+                            ALARM                                       01090000
+                            FREEKB                                      01091001
+                   END-EXEC                                             01100000
+           END-EVALUATE.                                                01110000
+       2000-SEND-TERMINATION-MESSAGE.                                   01120000
+           EXEC CICS                                                    01130000
+               SEND TEXT FROM(END-OF-SESSION-MESSAGE)                   01140000
+                         ERASE                                          01150000
+                         FREEKB                                         01160000
+           END-EXEC.                                                    01170000
+

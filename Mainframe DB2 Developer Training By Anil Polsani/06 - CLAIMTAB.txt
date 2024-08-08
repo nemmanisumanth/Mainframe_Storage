@@ -1,0 +1,24 @@
+-- SELECT * FROM IBMUSER.CLAIM_T61;                                     00001011
+                                                                        00002010
+-- CREATE TABLE IBMUSER.CLAIM_T61(                                      00010001
+--    CLAIM_NUMBER    CHAR(05) NOT NULL PRIMARY KEY,                    00020001
+--    CUST_NAME      VARCHAR(10) NOT NULL,                              00030001
+--    CLAIM_AMOUNT   DECIMAL(5,2) CHECK(CLAIM_AMOUNT > 0),              00040001
+--    CLAIM_TYPE     CHAR(10)  WITH DEFAULT 'MEDICAL',                  00050001
+--    CLAIM_STATUS   CHAR(10),                                          00060001
+--    CLAIM_SUB_DT   DATE WITH DEFAULT,                                 00070001
+--    CREATE_TS     TIMESTAMP WITH DEFAULT,                             00080001
+--    UPDATE_TS     TIMESTAMP WITH DEFAULT,                             00090001
+--    LAST_UPDT_TOKEN  CHAR(10) )                                       00100001
+-- IN DSNDB04.FILEA;                                                    00110001
+---   TESTDB.TESTTS9;                                                   00120000
+                                                                        00130001
+-- CREATE UNIQUE INDEX INXT61 ON  IBMUSER.CLAIM_T61(CLAIM_NUMBER);      00131004
+                                                                        00132002
+-- INSERT INTO IBMUSER.CLAIM_T61(                                       00140010
+--  CLAIM_NUMBER,CUST_NAME,CLAIM_AMOUNT,CLAIM_TYPE,CLAIM_STATUS,        00150010
+--  CLAIM_SUB_DT,LAST_UPDT_TOKEN)                                       00160010
+-- VALUES('C4444','ANIL KUMAR',100.00,'MEDICAL','SUBMIT',               00170010
+--'2021-10-01','IBMUSER');                                              00180010
+                                                                        00190001
+

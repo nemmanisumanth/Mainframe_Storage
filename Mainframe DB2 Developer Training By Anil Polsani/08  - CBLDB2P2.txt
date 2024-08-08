@@ -1,0 +1,117 @@
+       ID DIVISION.
+       PROGRAM-ID. CBLDB2P2.
+       AUTHOR. NAME.
+       DATE-WRITTEN. TODAY.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT CLAIM-INFILE  ASSIGN TO CLAIMDD1
+           ORGANIZATION IS SEQUENTIAL
+           ACCESS MODE IS SEQUENTIAL
+           FILE STATUS   IS  WS-IN-STATUS.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD CLAIM-INFILE
+           LABEL RECORDS ARE STANDARD.
+       01  CLAIM-DETAILS.
+           10 CLAIM-NUMBER     PIC X(5).
+           10 CUST-NAME.
+              15 CUST-NAME-TEXT PIC X(10).
+           10 CLAIM-AMOUNT     PIC S9(3)V9(2).
+           10 CLAIM-TYPE       PIC X(10).
+           10 CLAIM-STATUS     PIC X(10).
+           10 CLAIM-SUB-DT     PIC X(10).
+
+       WORKING-STORAGE SECTION.
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+           EXEC SQL INCLUDE DCLCLAIM END-EXEC.
+
+       01 WS-IN-STATUS   PIC  X(02) VALUE SPACE.
+       01 CUST-NAME-LEN  PIC S9(4) USAGE COMP.
+       01 WS-ABENDPGM    PIC   X(08) VALUE SPACE.
+       01 WS-END-OF-FILE PIC   X(01) VALUE SPACE.
+       01 WS-ROW-COUNT    PIC  9(02) VALUE ZERO.
+       01 WS-SPACE-LEN         PIC 9(02) VALUE ZERO.
+       PROCEDURE DIVISION.
+       000-MAIN-PARA.
+           DISPLAY  'CBLDB2P2 STARTED'.
+
+           PERFORM 100-INITIAL-PARA THRU 100-EXIT.
+           PERFORM 200-GET-INPUT-PARA THRU 200-EXIT.
+           PERFORM 300-PROCESS-PARA THRU 300-EXIT
+                           UNTIL WS-END-OF-FILE = 'Y'.
+           CLOSE CLAIM-INFILE.
+           DISPLAY 'ROW COUNT ' WS-ROW-COUNT.
+           STOP RUN.
+       100-INITIAL-PARA.
+           MOVE 'N'  TO WS-END-OF-FILE.
+           MOVE ZERO TO CUST-NAME-LEN  WS-ROW-COUNT.
+           OPEN INPUT CLAIM-INFILE
+           IF WS-IN-STATUS NOT = '00'
+              DISPLAY 'ERROR IN 100-PARA'
+              DISPLAY 'STATUS CODE '  WS-IN-STATUS
+              CALL WS-ABENDPGM
+           END-IF.
+           INITIALIZE CLAIM-DETAILS.
+       100-EXIT. EXIT.
+
+       200-GET-INPUT-PARA.
+           READ CLAIM-INFILE
+           AT END
+             MOVE 'Y' TO WS-END-OF-FILE.
+       200-EXIT. EXIT.
+
+       300-PROCESS-PARA.
+           IF CLAIM-AMOUNT > 0
+              MOVE CLAIM-NUMBER  TO DCL-CLAIM-NUMBER
+              MOVE ZERO TO WS-SPACE-LEN
+              INSPECT FUNCTION REVERSE(CUST-NAME-TEXT)
+                       TALLYING WS-SPACE-LEN FOR LEADING SPACES
+
+              COMPUTE CUST-NAME-LEN = LENGTH OF CUST-NAME-TEXT -
+                                            WS-SPACE-LEN
+              MOVE CUST-NAME-LEN   TO DCL-CUST-NAME-LEN
+              MOVE CUST-NAME-TEXT  TO DCL-CUST-NAME-TEXT
+              MOVE CLAIM-AMOUNT    TO DCL-CLAIM-AMOUNT
+              MOVE CLAIM-TYPE      TO DCL-CLAIM-TYPE
+              MOVE CLAIM-STATUS    TO DCL-CLAIM-STATUS
+              MOVE CLAIM-SUB-DT    TO DCL-CLAIM-SUB-DT
+              MOVE 'CBLDB2P1'      TO DCL-LAST-UPDT-TOKEN
+              PERFORM 350-INSERT-PARA  THRU 350-EXIT
+            END-IF.
+            PERFORM 200-GET-INPUT-PARA THRU 200-EXIT.
+       300-EXIT. EXIT.
+
+       350-INSERT-PARA.
+           EXEC SQL
+             INSERT INTO CLAIM_T61(
+                CLAIM_NUMBER,
+                CUST_NAME,
+                CLAIM_AMOUNT,
+                CLAIM_TYPE,
+                CLAIM_STATUS,
+                CLAIM_SUB_DT,
+                LAST_UPDT_TOKEN)
+             VALUES(:DCL-CLAIM-NUMBER,
+                    :DCL-CUST-NAME,
+                    :DCL-CLAIM-AMOUNT,
+                    :DCL-CLAIM-TYPE,
+                    :DCL-CLAIM-STATUS,
+                    :DCL-CLAIM-SUB-DT,
+                    :DCL-LAST-UPDT-TOKEN)
+           END-EXEC.
+           IF SQLCODE = 000
+               DISPLAY 'INSERT SUCCESFUL'
+               ADD +1  TO WS-ROW-COUNT
+           ELSE
+              DISPLAY 'ERROR IN 350-INSERT-PARA'
+              DISPLAY 'SQLCODE IS ' SQLCODE
+              DISPLAY 'CLAIM RECORD ' CLAIM-DETAILS
+              DISPLAY 'ROW COUNT ' WS-ROW-COUNT
+              CALL WS-ABENDPGM
+           END-IF.
+
+       350-EXIT. EXIT.
+

@@ -1,0 +1,39 @@
+TDQMSET DFHMSD TYPE=MAP,MODE=INOUT,LANG=COBOL,                         X
+               STORAGE=AUTO,TIOAPFX=YES
+TDQMAP  DFHMDI SIZE=(24,80),CTRL=(FRSET,FREEKB),DSATTS=(COLOR,HILIGHT),X
+               MAPATTS=(COLOR,HILIGHT)
+        DFHMDF POS=(04,25),ATTRB=(ASKIP,NORM),LENGTH=20,               X
+               INITIAL='EMPLOYEE DETAILS '
+        DFHMDF POS=(08,10),ATTRB=(ASKIP,NORM),LENGTH=15,               X
+               INITIAL='ECODE         :'
+CODE    DFHMDF POS=(08,30),ATTRB=(UNPROT,FSET,IC),LENGTH=5,            X
+               INITIAL='_____'
+        DFHMDF POS=(08,36),ATTRB=(ASKIP,NORM),LENGTH=1,                X
+               INITIAL=' '
+        DFHMDF POS=(10,10),ATTRB=(ASKIP,NORM),LENGTH=15,               X
+               INITIAL='ENAME         :'
+NAME    DFHMDF POS=(10,30),ATTRB=(UNPROT,FSET),LENGTH=10,              X
+               INITIAL='_________'
+        DFHMDF POS=(10,41),ATTRB=(ASKIP,NORM),LENGTH=1,                X
+               INITIAL=' '
+        DFHMDF POS=(12,10),ATTRB=(ASKIP,NORM),LENGTH=15,               X
+               INITIAL='EPHONE NO     :'
+EPNO    DFHMDF POS=(12,30),ATTRB=(UNPROT,FSET),LENGTH=10,              X
+               INITIAL='__________'
+        DFHMDF POS=(12,41),ATTRB=(PROT,NORM),LENGTH=1,                 X
+               INITIAL=' '
+        DFHMDF POS=(15,10),ATTRB=(ASKIP,NORM),LENGTH=7,                X
+               INITIAL='RESULT:',COLOR=RED
+MSG     DFHMDF POS=(15,19),ATTRB=(UNPROT,FSET),LENGTH=35,              X
+               INITIAL=' ',COLOR=RED,HILIGHT=BLINK
+        DFHMDF POS=(23,02),ATTRB=(ASKIP,NORM),LENGTH=15,               X
+               INITIAL='F1:ADD TO QUEUE'
+        DFHMDF POS=(23,20),ATTRB=(ASKIP,NORM),LENGTH=18,               X
+               INITIAL='F2:READ FROM QUEUE'
+        DFHMDF POS=(23,41),ATTRB=(ASKIP,NORM),LENGTH=18,               X
+               INITIAL='F3:EXIT FROM QUEUE'
+        DFHMDF POS=(23,60),ATTRB=(ASKIP,NORM),LENGTH=19,               X
+               INITIAL='F4:DELETE FROM QUEUE'
+        DFHMSD TYPE=FINAL
+        END
+

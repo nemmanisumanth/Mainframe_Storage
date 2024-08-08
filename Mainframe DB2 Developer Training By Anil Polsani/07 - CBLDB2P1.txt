@@ -1,0 +1,108 @@
+       ID DIVISION.
+       PROGRAM-ID. CBLDB2P1.
+       AUTHOR. NAME.
+       DATE-WRITTEN. TODAY.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       WORKING-STORAGE SECTION.
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+           EXEC SQL INCLUDE DCLCLAIM END-EXEC.
+
+       01 WS-ABENDPGM    PIC   X(08) VALUE SPACE.
+       01 WS-END-OF-INPUT PIC  X(01) VALUE SPACE.
+       01 WS-ROW-COUNT    PIC  9(02) VALUE ZERO.
+       01  CLAIM-DETAILS.
+           10 CLAIM-NUMBER     PIC X(5).
+           10 CUST-NAME.
+              15 CUST-NAME-LEN  PIC S9(4) USAGE COMP.
+              15 CUST-NAME-TEXT PIC X(10).
+           10 CLAIM-AMOUNT     PIC S9(3)V9(2).
+           10 CLAIM-TYPE       PIC X(10).
+           10 CLAIM-STATUS     PIC X(10).
+           10 CLAIM-SUB-DT     PIC X(10).
+           10 CREATE-TS        PIC X(26).
+           10 UPDATE-TS        PIC X(26).
+           10 LAST-UPDT-TOKEN  PIC X(10).
+       01 WS-SPACE-LEN         PIC 9(02) VALUE ZERO.
+       PROCEDURE DIVISION.
+       000-MAIN-PARA.
+           DISPLAY  'CBLDB2P1 STARTED'.
+
+           MOVE 'N'  TO WS-END-OF-INPUT.
+           PERFORM 200-GET-INPUT-PARA THRU 200-EXIT.
+           PERFORM 300-PROCESS-PARA THRU 300-EXIT
+                           UNTIL WS-END-OF-INPUT = 'Y'.
+
+           DISPLAY 'ROW COUNT ' WS-ROW-COUNT.
+           STOP RUN.
+
+       200-GET-INPUT-PARA.
+           ACCEPT CLAIM-NUMBER
+           ACCEPT CUST-NAME-TEXT
+           ACCEPT CLAIM-AMOUNT
+           ACCEPT CLAIM-TYPE
+           ACCEPT CLAIM-STATUS
+           ACCEPT CLAIM-SUB-DT.
+
+       200-EXIT. EXIT.
+
+       300-PROCESS-PARA.
+           IF CLAIM-AMOUNT > 0
+              MOVE CLAIM-NUMBER  TO DCL-CLAIM-NUMBER
+              MOVE ZERO TO WS-SPACE-LEN
+              INSPECT FUNCTION REVERSE(CUST-NAME-TEXT)
+                       TALLYING WS-SPACE-LEN FOR LEADING SPACES
+
+              COMPUTE CUST-NAME-LEN = LENGTH OF CUST-NAME-TEXT -
+                                            WS-SPACE-LEN
+              MOVE CUST-NAME-LEN   TO DCL-CUST-NAME-LEN
+              MOVE CUST-NAME-TEXT  TO DCL-CUST-NAME-TEXT
+              MOVE CLAIM-AMOUNT    TO DCL-CLAIM-AMOUNT
+              MOVE CLAIM-TYPE      TO DCL-CLAIM-TYPE
+              MOVE CLAIM-STATUS    TO DCL-CLAIM-STATUS
+              MOVE CLAIM-SUB-DT    TO DCL-CLAIM-SUB-DT
+              MOVE 'CBLDB2P1'      TO DCL-LAST-UPDT-TOKEN
+              PERFORM 350-INSERT-PARA  THRU 350-EXIT
+            END-IF.
+            ACCEPT WS-END-OF-INPUT.
+            IF WS-END-OF-INPUT = 'N'
+               PERFORM 200-GET-INPUT-PARA THRU 200-EXIT
+            END-IF.
+       300-EXIT. EXIT.
+
+       350-INSERT-PARA.
+           EXEC SQL
+             INSERT INTO CLAIM_T61(
+                CLAIM_NUMBER,
+                CUST_NAME,
+                CLAIM_AMOUNT,
+                CLAIM_TYPE,
+                CLAIM_STATUS,
+                CLAIM_SUB_DT,
+                LAST_UPDT_TOKEN)
+             VALUES(:DCL-CLAIM-NUMBER,
+                    :DCL-CUST-NAME,
+                    :DCL-CLAIM-AMOUNT,
+                    :DCL-CLAIM-TYPE,
+                    :DCL-CLAIM-STATUS,
+                    :DCL-CLAIM-SUB-DT,
+                    :DCL-LAST-UPDT-TOKEN)
+           END-EXEC.
+           IF SQLCODE = 000
+               DISPLAY 'INSERT SUCCESFUL'
+               ADD +1  TO WS-ROW-COUNT
+           ELSE
+              DISPLAY 'ERROR IN 350-INSERT-PARA'
+              DISPLAY 'SQLCODE IS ' SQLCODE
+              DISPLAY 'CLAIM RECORD ' CLAIM-DETAILS
+              DISPLAY 'ROW COUNT ' WS-ROW-COUNT
+              CALL WS-ABENDPGM
+           END-IF.
+
+       350-EXIT. EXIT.
+

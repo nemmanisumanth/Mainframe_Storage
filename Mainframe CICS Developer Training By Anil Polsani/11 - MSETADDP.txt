@@ -1,0 +1,97 @@
+000100 ID DIVISION.                                                     00010001
+000200 PROGRAM-ID. MSETADDP.                                            00020002
+000300 AUTHOR. UR NAME.                                                 00030037
+000400 DATE-WRITTEN. TODAY.                                             00040037
+000500                                                                  00050037
+000600 ENVIRONMENT DIVISION.                                            00060002
+000700                                                                  00070036
+000800 DATA DIVISION.                                                   00080002
+000900 WORKING-STORAGE SECTION.                                         00090002
+001000 01  FLAGS.                                                       00100002
+001100     05  SEND-FLAG          PIC X(01).                            00110002
+001200         88  SEND-ERASE              VALUE '1'.                   00120002
+001300         88  SEND-DATAONLY           VALUE '2'.                   00130002
+001400         88  SEND-DATAONLY-ALARM     VALUE '3'.                   00140002
+001500 01  END-OF-SESSION-MESSAGE      PIC X(37) VALUE                  00150002
+001600                        '____ ____ TYPE CESF LOGOFF FOR EXIT..'.  00160002
+001700 01 WS-NO1         PIC 9(4) VALUE ZERO.                           00170036
+001800 01 WS-NO2         PIC 9(4) VALUE ZERO.                           00180036
+001900 01 WS-TOTAL       PIC 9(5) VALUE ZERO.                           00190036
+002000 01 WS-COMM-AREA   PIC X(01) VALUE 'A'.                           00200069
+002100 COPY MSETADD.                                                    00210031
+002200 COPY DFHAID.                                                     00220002
+002300 PROCEDURE DIVISION.                                              00230002
+002400 000-MAIN-PARA.                                                   00240002
+002500     EVALUATE TRUE                                                00250002
+002600         WHEN EIBCALEN = ZERO                                     00260002
+002700             MOVE LOW-VALUE TO MAPADD1O                           00270002
+002800             SET SEND-ERASE TO TRUE                               00280002
+002900             PERFORM 1000-SEND-MAP                                00290002
+003000         WHEN EIBAID = DFHENTER OR DFHPF1                         00300036
+003100             PERFORM 2000-PROCESS-PARA                            00310050
+003200         WHEN EIBAID = DFHCLEAR OR DFHPF2                         00320002
+003300             MOVE LOW-VALUE TO MAPADD1O                           00330002
+003400             SET SEND-ERASE TO TRUE                               00340002
+003500             PERFORM 1000-SEND-MAP                                00350002
+003800         WHEN EIBAID = DFHPF3                                     00351043
+004200*            PERFORM 3000-SEND-TERMINATION-MESSAGE                00355086
+                   EXEC CICS XCTL PROGRAM('MENUPGM') END-EXEC           00356086
+004300         WHEN OTHER                                               00430002
+004400             MOVE 'Invalid key pressed.' TO MESSAGEO              00440002
+004500             SET SEND-DATAONLY-ALARM TO TRUE                      00450002
+004600             PERFORM 1000-SEND-MAP                                00460002
+004700     END-EVALUATE.                                                00470002
+004800     EXEC CICS                                                    00480058
+004900         RETURN TRANSID('TRN1')                                   00490058
+005000                COMMAREA(WS-COMM-AREA)                            00500058
+005100     END-EXEC.                                                    00510058
+005200     GOBACK.                                                      00520058
+005300 1000-SEND-MAP.                                                   00530002
+005400     EVALUATE TRUE                                                00540002
+005500         WHEN SEND-ERASE                                          00550002
+005600             EXEC CICS                                            00560002
+005700                 SEND MAP('MAPADD1')                              00570002
+005800                      MAPSET('MSETADD')                           00580002
+005900                      FROM(MAPADD1O)                              00590002
+006000                      ERASE                                       00600002
+006100             END-EXEC                                             00610002
+006200         WHEN SEND-DATAONLY                                       00620002
+006300             MOVE -1     TO NO1L                                  00630002
+006400             EXEC CICS                                            00640002
+006500                 SEND MAP('MAPADD1')                              00650002
+006600                      MAPSET('MSETADD')                           00660002
+006700                      FROM(MAPADD1O)                              00670002
+006800                      DATAONLY                                    00680002
+006900             END-EXEC                                             00690002
+007000         WHEN SEND-DATAONLY-ALARM                                 00700002
+007100             EXEC CICS                                            00710002
+007200                 SEND MAP('MAPADD1')                              00720002
+007300                      MAPSET('MSETADD')                           00730002
+007400                      FROM(MAPADD1O)                              00740002
+007500                      DATAONLY                                    00750002
+007600                      ALARM                                       00760002
+007700                      FREEKB                                      00770076
+007800             END-EXEC                                             00780002
+007900     END-EVALUATE.                                                00790002
+008000********************************************************          00800002
+008100 2000-PROCESS-PARA.                                               00810050
+008200     MOVE LOW-VALUES TO MAPADD1I.                                 00820002
+008300     EXEC CICS RECEIVE                                            00830002
+008400                MAP('MAPADD1')                                    00840002
+008500                MAPSET('MSETADD')                                 00850002
+008600                INTO(MAPADD1I)                                    00860002
+008700     END-EXEC.                                                    00870002
+008800     MOVE NO1I  TO WS-NO1                                         00880002
+008900     MOVE NO2I  TO WS-NO2                                         00890002
+009000     COMPUTE WS-TOTAL = WS-NO1 + WS-NO2                           00900002
+009100     MOVE WS-TOTAL TO TOTALO                                      00910002
+009200     SET SEND-DATAONLY TO TRUE                                    00920002
+009300     PERFORM 1000-SEND-MAP.                                       00930002
+009400 3000-SEND-TERMINATION-MESSAGE.                                   00940002
+009500     EXEC CICS                                                    00950006
+009600         SEND TEXT FROM(END-OF-SESSION-MESSAGE)                   00960006
+009700                   ERASE                                          00970006
+009800                                                                  00980074
+009900     END-EXEC.                                                    00990006
+010000     EXEC CICS RETURN END-EXEC.                                   01000006
+

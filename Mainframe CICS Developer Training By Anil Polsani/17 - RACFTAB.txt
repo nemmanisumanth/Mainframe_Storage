@@ -1,0 +1,9 @@
+--DROP TABLE RACFTAB;                                                   00001045
+--    CREATE TABLE RACFTAB(LOGIN_ID CHAR(8) NOT NULL PRIMARY KEY,       00010050
+--                         LOGIN_PSWRD CHAR(8) NOT NULL)                00020050
+--                               IN DSNDB04.FILEA;                      00030050
+--    CREATE UNIQUE INDEX RACF_IDX ON RACFTAB(LOGIN_ID);                00040050
+--INSERT INTO RACFTAB(LOGIN_ID,LOGIN_PSWRD)                             00050051
+--            VALUES('ANIL12','ANIL123');                               00060051
+   SELECT * FROM RACFTAB;                                               00070050
+

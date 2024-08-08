@@ -1,0 +1,75 @@
+       ID DIVISION.                                                     00010009
+       PROGRAM-ID. MENUPGM.                                             00020009
+       DATA DIVISION.                                                   00030009
+       WORKING-STORAGE SECTION.                                         00040009
+       COPY MENUSET.                                                    00050009
+       COPY DFHAID.                                                     00060009
+       01 WS-COMMAREA PIC X(1).                                         00070009
+       01 WS-MSG      PIC X(25) VALUE SPACE.                            00080009
+       01 WS-STR      PIC X(35) VALUE                                   00090009
+                      '____ ____ TYPE CESF GOOD FOR EXIT'.              00100009
+       01 WS-CHOICE   PIC 9(1).                                         00110009
+          88 ADDITION  VALUE 1.                                         00120009
+          88 SUBRATION VALUE 2.                                         00130009
+          88 MULTIPY   VALUE 3.                                         00140009
+          88 DIV       VALUE 4.                                         00150009
+       PROCEDURE DIVISION.                                              00160009
+       000-MAIN-PARA.                                                   00170009
+           INITIALIZE WS-MSG , WS-CHOICE.                               00180009
+           IF EIBCALEN = 0                                              00190009
+              MOVE LOW-VALUES TO MENUMAPO                               00350009
+              PERFORM 100-SENDMAP-PARA                                  00200009
+           ELSE                                                         00210009
+              EVALUATE EIBAID                                           00220009
+                WHEN DFHENTER                                           00230009
+                    PERFORM 200-PROCESS-PARA                            00240009
+                WHEN DFHPF3                                             00250009
+                    PERFORM 300-EXIT-PARA                               00260009
+                WHEN OTHER                                              00270009
+                    MOVE 'INVALID KEY PRESSED..' TO WS-MSG              00280009
+                    PERFORM 100-SENDMAP-PARA                            00290009
+              END-EVALUATE                                              00300009
+           END-IF.                                                      00310009
+           PERFORM 500-RETURN-TRANS.                                    00320009
+           GOBACK.                                                      00330009
+       100-SENDMAP-PARA.                                                00340009
+           EXEC CICS SEND                                               00360009
+                     MAP('MENUMAP')                                     00370009
+                     MAPSET('MENUSET')                                  00380009
+                     FROM(MENUMAPO)                                     00390009
+                     FREEKB                                             00400009
+                     ERASE                                              00410009
+           END-EXEC.                                                    00420009
+       200-PROCESS-PARA.                                                00430009
+           MOVE LOW-VALUES TO MENUMAPI.                                 00440009
+           EXEC CICS RECEIVE                                            00450009
+                     MAP('MENUMAP')                                     00460009
+                     MAPSET('MENUSET')                                  00470009
+                     INTO(MENUMAPI)                                     00480009
+           END-EXEC.                                                    00490009
+           MOVE CHOICEI TO WS-CHOICE.                                   00500009
+           EVALUATE TRUE                                                00510009
+              WHEN ADDITION                                             00520009
+                 EXEC CICS XCTL PROGRAM('MSETADDP')                     00530009
+                 END-EXEC                                               00540009
+              WHEN SUBRATION                                            00520009
+                 EXEC CICS XCTL PROGRAM('MSETSUBP')                     00530009
+                 END-EXEC                                               00540009
+              WHEN MULTIPY                                              00520009
+                 EXEC CICS XCTL PROGRAM('MSETMULP')                     00530009
+                 END-EXEC                                               00540009
+              WHEN OTHER                                                00550009
+                 MOVE 'INVALID KEY VALUE ...' TO WS-MSG                 00560009
+                 PERFORM 100-SENDMAP-PARA                               00570009
+           END-EVALUATE.                                                00580009
+       300-EXIT-PARA.                                                   00590009
+           EXEC CICS SEND TEXT FROM(WS-STR) ERASE  END-EXEC.            00600009
+           EXEC CICS SEND CONTROL FREEKB END-EXEC.                      00610009
+           EXEC CICS    RETURN    END-EXEC.                             00620009
+       500-RETURN-TRANS.                                                00710009
+           EXEC CICS RETURN                                             00720009
+                     TRANSID('MENU')                                    00730010
+                     COMMAREA(WS-COMMAREA)                              00740009
+                     LENGTH(LENGTH OF WS-COMMAREA)                      00750009
+           END-EXEC.                                                    00760009
+

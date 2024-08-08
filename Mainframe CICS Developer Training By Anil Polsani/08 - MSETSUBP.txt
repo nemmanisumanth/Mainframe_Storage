@@ -1,0 +1,70 @@
+       ID DIVISION.
+       PROGRAM-ID. MSETSUBP.
+       AUTHOR. NAME.
+       DATE-WRITTEN. TODAY.
+
+       ENVIRONMENT DIVISION.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       COPY MSETSUB.
+       COPY DFHAID.
+       COPY DFHBMSCA.
+       01 WS-COMMAREA    PIC  X(01) VALUE 'X'.
+       01 WS-EXIT-MSG    PIC  X(50) VALUE 'END OF THE TRANSACTION'.
+       PROCEDURE DIVISION.
+       000-MAIN-PARA.
+           IF EIBCALEN = 0
+              MOVE LOW-VALUES TO MAPSUB1O
+              PERFORM 100-SEND-PARA THRU 100-EXIT
+           ELSE
+              EVALUATE TRUE
+              WHEN EIBAID = DFHPF1 OR DFHENTER
+                  PERFORM 200-PROCESS-PARA THRU 200-EXIT
+              WHEN EIBAID = DFHPF2 OR DFHCLEAR
+                  MOVE LOW-VALUES TO MAPSUB1O
+                  PERFORM 100-SEND-PARA THRU 100-EXIT
+              WHEN EIBAID = DFHPF3 OR DFHPF12
+                 EXEC CICS XCTL PROGRAM('MENUPGM') END-EXEC
+      *          EXEC CICS SEND TEXT FROM(WS-EXIT-MSG)
+      *                  FREEKB ERASE   END-EXEC
+      *          EXEC CICS RETURN END-EXEC
+              WHEN OTHER
+                  MOVE 'INVALID KEY PRESSED... ' TO MSGO
+                  PERFORM 100-SEND-PARA THRU 100-EXIT
+              END-EVALUATE
+           END-IF.
+           EXEC CICS RETURN
+               TRANSID('TRN2')
+               COMMAREA(WS-COMMAREA)
+           END-EXEC.
+           GOBACK.
+
+       100-SEND-PARA.
+           EXEC CICS
+             SEND MAP('MAPSUB1')
+                  MAPSET('MSETSUB')
+                  FROM(MAPSUB1O)
+                  ERASE
+           END-EXEC.
+
+       100-EXIT. EXIT.
+
+       200-PROCESS-PARA.
+           MOVE LOW-VALUES TO MAPSUB1I
+           EXEC CICS RECEIVE
+                 MAP('MAPSUB1')
+                 MAPSET('MSETSUB')
+                 INTO(MAPSUB1I)
+           END-EXEC.
+      *    INSPECT NO1I REPLACING ALL '_' BY '0'.
+           IF NO1L = ZERO OR NO2L = ZERO
+               MOVE 'PLZ PROVIDE BOTH THE INPUT ' TO MSGO
+               PERFORM 100-SEND-PARA THRU 100-EXIT
+               GO TO 200-EXIT
+           END-IF.
+           COMPUTE TOTALO = NO1I -  NO2I.
+           PERFORM 100-SEND-PARA THRU 100-EXIT.
+
+       200-EXIT. EXIT.
+
